@@ -4,26 +4,16 @@ import { IconSend } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { DropZone } from "@/components/DropZone";
-import { StatusBadge } from "@/components/Status";
+import { StatusBadge, StatusDot } from "@/components/Status";
 import { TextField } from "@/components/fields";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
+import { normalizeDeviceUrl } from "@/lib/invite";
 
 type SendState = "idle" | "offering" | "awaiting" | "sending" | "done" | "declined" | "error";
 
 const LAST_DEVICE_KEY = "drift-last-device";
-
-function normalizeUrl(raw: string): string {
-  const trimmed = raw.trim();
-  if (!trimmed) throw new Error("Enter the other device's address first.");
-  const withScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed) ? trimmed : `http://${trimmed}`;
-  const url = new URL(withScheme);
-  if (url.protocol !== "http:" && url.protocol !== "https:") {
-    throw new Error("That address must start with http:// or https://.");
-  }
-  return url.origin;
-}
 
 async function readError(res: Response, fallback: string): Promise<string> {
   const body = (await res.json().catch(() => null)) as { error?: string } | null;
@@ -34,8 +24,17 @@ async function readError(res: Response, fallback: string): Promise<string> {
  * Device-to-device sender. Offer first, stream only on accept,
  * with an explicit state machine throughout.
  */
-export function SendToDevice({ deviceId, deviceName }: { deviceId: string; deviceName: string }) {
+export function SendToDevice({
+  deviceId,
+  deviceName,
+  prefill,
+}: {
+  deviceId: string;
+  deviceName: string;
+  prefill?: { address: string; name: string | null } | null;
+}) {
   const [address, setAddress] = useState("");
+  const [manual, setManual] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<SendState>("idle");
   const [sent, setSent] = useState(0);
@@ -49,6 +48,13 @@ export function SendToDevice({ deviceId, deviceName }: { deviceId: string; devic
       if (pollRef.current !== null) window.clearInterval(pollRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    if (prefill?.address) {
+      setAddress(prefill.address);
+      setManual(false);
+    }
+  }, [prefill?.address]);
 
   const stopPoll = () => {
     if (pollRef.current !== null) {
@@ -76,7 +82,7 @@ export function SendToDevice({ deviceId, deviceName }: { deviceId: string; devic
     }
     let base: string;
     try {
-      base = normalizeUrl(address);
+      base = normalizeDeviceUrl(address);
     } catch (err) {
       setError(err instanceof Error ? err.message : "That address doesn't look right.");
       setState("error");
@@ -147,14 +153,27 @@ export function SendToDevice({ deviceId, deviceName }: { deviceId: string; devic
 
       {(state === "idle" || state === "error" || state === "declined") && (
         <Box gap="md">
-          <TextField
-            name="device-address"
-            label="Device address"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="http://192.168.1.5:3000"
-            helper="From the other device's QR code or This device card."
-          />
+          {prefill && !manual ? (
+            <Box direction="row" align="center" gap="sm" tint="sunken" bordered border="soft" radius="md" className="px-3.5 py-2.5">
+              <StatusDot tone="accent" />
+              <Box className="min-w-0 flex-1">
+                <AppText variant="small" weight={600} truncate>To {prefill.name || prefill.address}</AppText>
+                <AppText variant="micro" tone="muted">From their invite — no typing needed.</AppText>
+              </Box>
+              <AppButton label="Enter a different address" tone="ghost" size="sm" onClick={() => setManual(true)}>
+                Change
+              </AppButton>
+            </Box>
+          ) : (
+            <TextField
+              name="device-address"
+              label="Device address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="http://192.168.1.5:3000"
+              helper="From the other device's QR code or This device card."
+            />
+          )}
           <DropZone onFile={(next) => { setFile(next); setError(null); if (state !== "idle") setState("idle"); }} />
           {file && (
             <AppText variant="small" tone="secondary" truncate>

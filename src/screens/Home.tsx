@@ -20,6 +20,7 @@ import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
 import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
+import { buildInviteLink, parseInvite } from "@/lib/invite";
 import { getDeviceId, getDeviceName, setDeviceName as persistDeviceName, shortId } from "@/lib/device";
 import { useToast } from "@/components/Toast";
 import type { NetworkInfo } from "@/app/api/network/route";
@@ -103,6 +104,20 @@ export function HomeScreen() {
     );
   };
 
+  const [invite, setInvite] = useState<{ address: string; name: string | null } | null>(null);
+
+  useEffect(() => {
+    const found = parseInvite(window.location.search);
+    if (!found) return;
+    setInvite(found);
+    notify({
+      title: found.name ? `Ready to send to ${found.name}` : "Device ready",
+      message: "Pick a file below — the address is filled in.",
+      tone: "ok",
+    });
+    scrollTo("send");
+  }, [notify]);
+
   const choose = useCallback((next: File) => {
     const problem = validateFile(next);
     if (problem) {
@@ -143,6 +158,7 @@ export function HomeScreen() {
   }, []);
 
   const pct = file && file.size > 0 ? Math.min(100, Math.round((sent / file.size) * 100)) : 0;
+  const inviteLink = net?.urls[0] ? buildInviteLink(net.urls[0], deviceName) : null;
 
   return (
     <Box>
@@ -253,7 +269,7 @@ export function HomeScreen() {
               <AppText variant="body" tone="secondary" className="max-w-[56ch]">
                 Point this at Drift running on the same Wi-Fi. They accept first — nothing streams until they do.
               </AppText>
-              <SendToDevice deviceId={deviceId} deviceName={deviceName} />
+              <SendToDevice deviceId={deviceId} deviceName={deviceName} prefill={invite} />
             </Box>
           </Section>
 
@@ -357,15 +373,20 @@ export function HomeScreen() {
         title="Scan to connect"
         description="Point the other device's camera at this code. Both devices must be on the same Wi-Fi."
       >
-        {net?.urls[0] ? (
+        {inviteLink ? (
           <Box gap="md" align="center" className="pt-4">
             <Box radius="md" bordered border="line" tint="raised" pad="md">
-              <QRCode value={net.urls[0]} size={220} bgColor="#FFFFFF" fgColor="#161616" />
+              <QRCode value={inviteLink} size={220} bgColor="#FFFFFF" fgColor="#161616" />
             </Box>
-            <AppText variant="mono" tone="secondary" className="break-all text-center">{net.urls[0]}</AppText>
-            <AppButton label="Copy connection address" tone="secondary" onClick={() => copyUrl(net.urls[0])}>
-              Copy address
-            </AppButton>
+            <AppText variant="mono" tone="secondary" className="break-all text-center">{net?.urls[0]}</AppText>
+            <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
+              <AppButton label="Copy invite link" onClick={() => copyUrl(inviteLink)}>
+                Copy invite link
+              </AppButton>
+              <AppButton label="Copy connection address" tone="secondary" onClick={() => net?.urls[0] && copyUrl(net.urls[0])}>
+                Copy address
+              </AppButton>
+            </Box>
           </Box>
         ) : null}
       </Dialog>
