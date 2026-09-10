@@ -62,7 +62,7 @@ export function useSiteCommands(scrollTo: (id: string) => void): Command[] {
       hint: "clipboard",
       icon: IconArrowUpRight,
       run: () => {
-        void navigator.clipboard?.writeText("drift — Phase 1 streaming primitive. Same-device transfers work.").then(
+        void navigator.clipboard?.writeText("drift — Phase 2 local network. Same Wi-Fi transfers next.").then(
           () => notify({ title: "Copied", message: "Build status is on your clipboard.", tone: "ok" }),
           () => notify({ title: "Copy failed", message: "Clipboard refused access.", tone: "err" }),
         );

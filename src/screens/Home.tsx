@@ -1,10 +1,14 @@
 "use client";
 
-import { IconFile, IconFileCheck, IconInbox, IconReload } from "@tabler/icons-react";
+import { IconCopy, IconFile, IconFileCheck, IconInbox, IconPencil, IconQrcode, IconReload, IconWifi } from "@tabler/icons-react";
+import QRCode from "react-qr-code";
 import { useCallback, useEffect, useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { CommandPalette, usePaletteHotkey } from "@/components/CommandPalette";
+import { Dialog } from "@/components/Dialog";
 import { DropZone } from "@/components/DropZone";
+import { IconButton } from "@/components/IconButton";
+import { TextField } from "@/components/fields";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader, useSiteCommands } from "@/components/SiteHeader";
 import { StatusBadge, StatusDot } from "@/components/Status";
@@ -14,6 +18,9 @@ import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
 import { formatBytes, uploadFile, type UploadResult } from "@/lib/upload";
+import { getDeviceId, getDeviceName, setDeviceName as persistDeviceName, shortId } from "@/lib/device";
+import { useToast } from "@/components/Toast";
+import type { NetworkInfo } from "@/app/api/network/route";
 import type { ReceivedFile } from "@/app/api/transfers/route";
 
 type Status = "idle" | "ready" | "uploading" | "done" | "error";
@@ -53,6 +60,51 @@ export function HomeScreen() {
   useEffect(() => {
     void refreshReceived();
   }, [refreshReceived]);
+
+  const [deviceId, setDeviceId] = useState("");
+  const [deviceName, setDeviceName] = useState("");
+  const [editingName, setEditingName] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const [net, setNet] = useState<NetworkInfo | null>(null);
+  const [netState, setNetState] = useState<ListState>("loading");
+  const [qrOpen, setQrOpen] = useState(false);
+  const { notify } = useToast();
+
+  const loadNet = useCallback(async () => {
+    setNetState("loading");
+    try {
+      const res = await fetch("/api/network");
+      if (!res.ok) throw new Error();
+      setNet((await res.json()) as NetworkInfo);
+      setNetState("ready");
+    } catch {
+      setNetState("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    setDeviceId(getDeviceId());
+    setDeviceName(getDeviceName());
+    void loadNet();
+  }, [loadNet]);
+
+  const saveName = () => {
+    const clean = persistDeviceName(draftName);
+    setDeviceName(clean);
+    setEditingName(false);
+    notify({
+      title: clean ? `This device is now “${clean}”` : "Device name cleared",
+      message: "Other devices will see this name.",
+      tone: "ok",
+    });
+  };
+
+  const copyUrl = (url: string) => {
+    void navigator.clipboard?.writeText(url).then(
+      () => notify({ title: "Copied", message: "Open it on the other device.", tone: "ok" }),
+      () => notify({ title: "Copy failed", message: "Clipboard refused access.", tone: "err" }),
+    );
+  };
 
   const choose = useCallback((next: File) => {
     if (next.size === 0) {
@@ -201,6 +253,71 @@ export function HomeScreen() {
 
           <Divider />
 
+          {/* ── This device ── */}
+          <Section label="This device">
+            <Box id="device" gap="md" className="scroll-mt-24 py-12">
+              <AppText variant="section" headingLevel={2}>This device</AppText>
+              <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg">
+                <AppText variant="micro" tone="faint">identity</AppText>
+                {editingName ? (
+                  <Box direction="row" gap="sm" align="end" className="max-md:flex-col max-md:items-stretch">
+                    <TextField
+                      name="device-name"
+                      label="Device name"
+                      value={draftName}
+                      onChange={(e) => setDraftName(e.target.value)}
+                      placeholder="Tayo's laptop"
+                      containerClassName="flex-1"
+                    />
+                    <AppButton label="Save device name" size="sm" onClick={saveName}>
+                      Save
+                    </AppButton>
+                  </Box>
+                ) : (
+                  <Box direction="row" align="center" gap="sm">
+                    <Box className="min-w-0 flex-1">
+                      <AppText variant="subheading" weight={600} truncate>{deviceName || "Unnamed device"}</AppText>
+                      <AppText variant="mono" tone="faint">id {deviceId ? shortId(deviceId) : "····"}</AppText>
+                    </Box>
+                    <IconButton icon={IconPencil} label="Rename this device" onClick={() => { setDraftName(deviceName); setEditingName(true); }} />
+                  </Box>
+                )}
+                <Divider />
+                <Box direction="row" align="center" gap="sm">
+                  <StatusDot tone={netState === "error" ? "err" : "ok"} pulse={netState === "loading"} />
+                  <AppText variant="small" weight={600}>
+                    {netState === "loading" ? "Finding this machine on your Wi-Fi" : netState === "error" ? "Network info unavailable" : "Listening on your Wi-Fi"}
+                  </AppText>
+                </Box>
+                {netState === "ready" && net && net.urls.length > 0 && (
+                  <Box gap="xs">
+                    {net.urls.map((url) => (
+                      <Box key={url} direction="row" align="center" gap="sm" tint="sunken" bordered border="soft" radius="md" className="px-3.5 py-2.5">
+                        <Icon icon={IconWifi} size={16} className="text-ink-3" />
+                        <AppText variant="mono" truncate className="min-w-0 flex-1">{url}</AppText>
+                        <IconButton icon={IconCopy} label={`Copy ${url}`} size={14} className="h-8 w-8" onClick={() => copyUrl(url)} />
+                      </Box>
+                    ))}
+                    <AppButton label="Show connection QR code" tone="secondary" iconLeft={IconQrcode} onClick={() => setQrOpen(true)}>
+                      Show QR code
+                    </AppButton>
+                    <AppText variant="micro" tone="muted">Same Wi-Fi on both devices. Guest and office networks often block devices from seeing each other. If scanning fails, type the address into the other browser.</AppText>
+                  </Box>
+                )}
+                {netState === "ready" && net && net.urls.length === 0 && (
+                  <AppText variant="small" tone="secondary">No local network found. Connect to Wi-Fi and reload.</AppText>
+                )}
+                {netState === "error" && (
+                  <AppButton label="Retry network lookup" tone="secondary" size="sm" onClick={() => { void loadNet(); }}>
+                    Try again
+                  </AppButton>
+                )}
+              </Box>
+            </Box>
+          </Section>
+
+          <Divider />
+
           {/* ── Received ── */}
           <Section label="Received on this machine">
             <Box id="received" gap="md" className="scroll-mt-24 py-12">
@@ -243,6 +360,25 @@ export function HomeScreen() {
         </Container>
       </Main>
       <SiteFooter />
+      <Dialog
+        open={qrOpen}
+        onOpenChange={setQrOpen}
+        label="Connection QR code"
+        title="Scan to connect"
+        description="Point the other device's camera at this code. Both devices must be on the same Wi-Fi."
+      >
+        {net?.urls[0] ? (
+          <Box gap="md" align="center" className="pt-4">
+            <Box radius="md" bordered border="line" tint="raised" pad="md">
+              <QRCode value={net.urls[0]} size={220} bgColor="#FFFFFF" fgColor="#161616" />
+            </Box>
+            <AppText variant="mono" tone="secondary" className="break-all text-center">{net.urls[0]}</AppText>
+            <AppButton label="Copy connection address" tone="secondary" onClick={() => copyUrl(net.urls[0])}>
+              Copy address
+            </AppButton>
+          </Box>
+        ) : null}
+      </Dialog>
       <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
     </Box>
   );
