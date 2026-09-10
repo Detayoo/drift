@@ -9,7 +9,7 @@ export function SiteFooter() {
       <Divider />
       <Container>
         <Box direction="row" align="center" justify="between" gap="sm" className="py-8 max-md:flex-col max-md:items-start">
-          <AppText variant="micro" tone="muted">LocalDrop — move files directly between your devices.</AppText>
+          <AppText variant="micro" tone="muted">Drift — move files directly between your devices.</AppText>
           <AppText variant="mono" tone="faint">no cloud · no account · phase 1</AppText>
         </Box>
       </Container>

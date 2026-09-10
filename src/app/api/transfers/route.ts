@@ -8,7 +8,7 @@ import { pipeline } from "node:stream/promises";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const INBOX = path.join(process.cwd(), ".localdrop-inbox");
+const INBOX = path.join(process.cwd(), ".drift-inbox");
 const MAX_BYTES = 5 * 1024 ** 3;
 
 export type ReceivedFile = {
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
   if (!req.body) return fail("Empty request body. Nothing was sent.", 400);
 
-  const rawName = req.headers.get("x-localdrop-filename");
+  const rawName = req.headers.get("x-drift-filename");
   if (!rawName || !rawName.trim()) return fail("Missing file name. The sender must name it.", 400);
 
   let filename = "";
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
   if (!filename) filename = "file";
 
-  const declared = Number(req.headers.get("x-localdrop-size") ?? NaN);
+  const declared = Number(req.headers.get("x-drift-size") ?? NaN);
   if (!Number.isFinite(declared) || declared <= 0)
     return fail("Missing file size. The sender must declare it.", 400);
   if (declared > MAX_BYTES)

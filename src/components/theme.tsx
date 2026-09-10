@@ -18,7 +18,7 @@ export function ThemeProvider({ children }: { children?: ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("localdrop-theme");
+    const stored = window.localStorage.getItem("drift-theme");
     const initial: Theme =
       stored === "light" || stored === "dark"
         ? stored
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children?: ReactNode }) {
   const toggle = useCallback(() => {
     setTheme((prev) => {
       const next: Theme = prev === "light" ? "dark" : "light";
-      window.localStorage.setItem("localdrop-theme", next);
+      window.localStorage.setItem("drift-theme", next);
       document.documentElement.classList.toggle("dark", next === "dark");
       return next;
     });

@@ -37,7 +37,7 @@ yarn-error.log*
 .vercel
 
 # received transfer files are always local — never commit user data
-/.localdrop-inbox/
+/.drift-inbox/
 
 # docs are always local — never commit markdown or instruction files
 *.md

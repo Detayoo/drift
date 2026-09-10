@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────
-   LocalDrop design tokens — Phase 0 foundation
+   Drift design tokens — Phase 0 foundation
    :root = light · .dark = dark (class strategy)
    Rules: tokens only in UI · no raw hex · no shadows
    (shadow scale neutralised below — elevation = border)

@@ -40,9 +40,9 @@ export async function uploadFile(
     method: "POST",
     headers: {
       "content-type": "application/octet-stream",
-      "x-localdrop-filename": encodeURIComponent(file.name),
-      "x-localdrop-size": String(file.size),
-      "x-localdrop-type": file.type || "application/octet-stream",
+      "x-drift-filename": encodeURIComponent(file.name),
+      "x-drift-size": String(file.size),
+      "x-drift-type": file.type || "application/octet-stream",
     },
     body: file.stream().pipeThrough(counter),
     duplex: "half",

@@ -83,7 +83,7 @@ export function CommandPalette({
           <FieldInput
             role="combobox"
             aria-expanded="true"
-            aria-controls="localdrop-commands"
+            aria-controls="drift-commands"
             aria-activedescendant={matches[active] ? `cmd-${matches[active].id}` : undefined}
             aria-label="Type a command"
             autoFocus
@@ -99,7 +99,7 @@ export function CommandPalette({
             className="h-14 border-0 bg-transparent px-0 text-[15px] focus:border-transparent"
           />
         </Box>
-        <Box role="listbox" id="localdrop-commands" label="Commands" className="max-h-[40dvh] overflow-y-auto p-2">
+        <Box role="listbox" id="drift-commands" label="Commands" className="max-h-[40dvh] overflow-y-auto p-2">
           {matches.length === 0 ? (
             <Box pad="lg" align="center">
               <AppText variant="small" tone="muted">No matching command</AppText>

@@ -25,7 +25,7 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
             <Box align="center" justify="center" radius="md" tint="accent" className="h-8 w-8">
               <Icon icon={IconArrowUpRight} size={18} className="text-on-accent" />
             </Box>
-            <AppText variant="subheading" weight={600} className="text-[17px]">LocalDrop</AppText>
+            <AppText variant="subheading" weight={600} className="text-[17px]">Drift</AppText>
             <Box className="max-md:hidden">
               <StatusBadge tone="neutral">Phase 1</StatusBadge>
             </Box>

@@ -30,7 +30,7 @@ const display = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "LocalDrop — Move files directly between your devices",
+  title: "Drift — Move files directly between your devices",
   description: "Local-first, device-to-device file transfer. No cloud. No account. Just your network.",
 };
 
