@@ -9,7 +9,9 @@ import { Dialog } from "@/components/Dialog";
 import { DropZone } from "@/components/DropZone";
 import { IncomingOffers } from "@/components/IncomingOffers";
 import { InlineEdit } from "@/components/InlineEdit";
+import { NearbyDevices } from "@/components/NearbyDevices";
 import { SendToDevice } from "@/components/SendToDevice";
+import { SharePickup } from "@/components/SharePickup";
 import { IconButton } from "@/components/IconButton";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader, useSiteCommands } from "@/components/SiteHeader";
@@ -102,6 +104,7 @@ export function HomeScreen() {
   };
 
   const [invite, setInvite] = useState<{ address: string; name: string | null } | null>(null);
+  const [peerDest, setPeerDest] = useState<{ address: string; name: string | null } | null>(null);
 
   useEffect(() => {
     const found = parseInvite(window.location.search);
@@ -266,7 +269,38 @@ export function HomeScreen() {
               <AppText variant="body" tone="secondary" className="max-w-[56ch]">
                 Point this at Drift running on the same Wi-Fi. They accept first — nothing streams until they do.
               </AppText>
-              <SendToDevice deviceId={deviceId} deviceName={deviceName} prefill={invite} />
+              <SendToDevice deviceId={deviceId} deviceName={deviceName} prefill={peerDest ?? invite} />
+              <Box gap="sm" className="pt-4">
+                <AppText variant="small" weight={600}>Or share a pickup link</AppText>
+                <AppText variant="small" tone="secondary" className="max-w-[56ch]">
+                  For phones and browsers with nothing installed. They open your link and download — no accept step needed.
+                </AppText>
+                {net?.urls[0] ? (
+                  <SharePickup baseUrl={net.urls[0]} />
+                ) : (
+                  <AppText variant="small" tone="muted">Waiting on the network address above.</AppText>
+                )}
+              </Box>
+            </Box>
+          </Section>
+
+          <Divider />
+
+          {/* ── Nearby ── */}
+          <Section label="Nearby devices">
+            <Box id="nearby" gap="md" className="scroll-mt-24 py-12">
+              <AppText variant="section" headingLevel={2}>Nearby</AppText>
+              <AppText variant="body" tone="secondary" className="max-w-[56ch]">
+                Machines running Drift find each other on their own. Phones join by scan — they can&apos;t announce themselves.
+              </AppText>
+              <NearbyDevices
+                deviceId={deviceId}
+                deviceName={deviceName}
+                onSend={(peer) => {
+                  setPeerDest({ address: peer.url, name: peer.name });
+                  scrollTo("send");
+                }}
+              />
             </Box>
           </Section>
 
@@ -357,7 +391,7 @@ export function HomeScreen() {
 
           <Box className="py-8">
             <AppText variant="micro" tone="faint">
-              Phase 3 · offer first, stream on accept. Automatic discovery arrives in Phase 4.
+              Phase 4 · nearby machines appear on their own, browsers pick up links. Discovery is UDP broadcast — guest networks may block it.
             </AppText>
           </Box>
         </Container>

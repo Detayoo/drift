@@ -26,7 +26,7 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
             <Image src="/icon.svg" width={32} height={32} alt="Drift" priority className="h-8 w-8" />
             <AppText variant="subheading" weight={600} className="text-[17px]">Drift</AppText>
             <Box className="max-md:hidden">
-              <StatusBadge tone="neutral">Phase 3</StatusBadge>
+              <StatusBadge tone="neutral">Phase 4</StatusBadge>
             </Box>
           </Box>
           <Box direction="row" align="center" gap="sm">
@@ -62,7 +62,7 @@ export function useSiteCommands(scrollTo: (id: string) => void): Command[] {
       hint: "clipboard",
       icon: IconArrowUpRight,
       run: () => {
-        void navigator.clipboard?.writeText("drift — Phase 3 device-to-device. Offer first, stream on accept.").then(
+        void navigator.clipboard?.writeText("drift — Phase 4 nearby discovery with pickup links.").then(
           () => notify({ title: "Copied", message: "Build status is on your clipboard.", tone: "ok" }),
           () => notify({ title: "Copy failed", message: "Clipboard refused access.", tone: "err" }),
         );

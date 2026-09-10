@@ -5,6 +5,8 @@ export type UploadResult = {
   filename: string;
   bytes: number;
   ms: number;
+  stageId?: string;
+  pickupPath?: string;
 };
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 ** 3;
@@ -36,7 +38,7 @@ export function formatBytes(n: number): string {
 export async function uploadFile(
   file: File,
   onProgress: (sent: number) => void,
-  opts?: { baseUrl?: string; grant?: string; signal?: AbortSignal },
+  opts?: { baseUrl?: string; path?: string; grant?: string; signal?: AbortSignal },
 ): Promise<UploadResult> {
   let sent = 0;
   const counter = new TransformStream<Uint8Array, Uint8Array>({
@@ -48,6 +50,7 @@ export async function uploadFile(
   });
 
   const base = (opts?.baseUrl ?? "").replace(/\/+$/, "");
+  const target = `${base}${opts?.path ?? "/api/transfers"}`;
   const init: RequestInit & { duplex: "half" } = {
     method: "POST",
     headers: {
@@ -61,7 +64,7 @@ export async function uploadFile(
     duplex: "half",
     signal: opts?.signal,
   };
-  const res = await fetch(`${base}/api/transfers`, init);
+  const res = await fetch(target, init);
 
   if (!res.ok) throw new Error(await readError(res, "Upload failed"));
   return (await res.json()) as UploadResult;

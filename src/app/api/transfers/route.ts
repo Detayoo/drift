@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { createWriteStream, promises as fs } from "node:fs";
+import { promises as fs } from "node:fs";
 import path from "node:path";
-import { PassThrough, Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
+import { Readable } from "node:stream";
+import { streamToFile } from "@/server/files";
 import { consumeGrant, finishOffer, markProgress } from "@/server/offers";
 
 export const runtime = "nodejs";
@@ -63,20 +63,22 @@ export async function POST(req: NextRequest) {
   const started = Date.now();
   log(`begin "${filename}" (${declared} bytes)`);
 
-  let received = 0;
   let nextMark = 0.25;
-  const tap = new PassThrough();
-  tap.on("data", (chunk: Buffer) => {
-    received += chunk.length;
+  const onBytes = (received: number) => {
     if (grantOffer) markProgress(grantOffer.id, received, declared);
     if (received / declared >= nextMark && nextMark < 1) {
       log(`${Math.round(nextMark * 100)}% (${received}/${declared} bytes)`);
       nextMark += 0.25;
     }
-  });
+  };
 
+  let received = 0;
   try {
-    await pipeline(Readable.fromWeb(req.body as import("node:stream/web").ReadableStream), tap, createWriteStream(dest));
+    received = await streamToFile(
+      Readable.fromWeb(req.body as import("node:stream/web").ReadableStream),
+      dest,
+      onBytes,
+    );
   } catch (err) {
     await fs.rm(dest, { force: true });
     if (grantOffer) finishOffer(grantOffer.id, false);
