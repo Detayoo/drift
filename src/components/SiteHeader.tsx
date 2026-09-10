@@ -1,6 +1,7 @@
 "use client";
 
 import { IconArrowUpRight, IconCommand } from "@tabler/icons-react";
+import Image from "next/image";
 import { useState } from "react";
 import { ActionButton } from "@/components/primitives/ActionButton";
 import { AppText } from "@/components/primitives/AppText";
@@ -22,9 +23,7 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
       <Container>
         <Box direction="row" align="center" justify="between" gap="md" className="h-16">
           <Box direction="row" align="center" gap="sm">
-            <Box align="center" justify="center" radius="md" tint="accent" className="h-8 w-8">
-              <Icon icon={IconArrowUpRight} size={18} className="text-on-accent" />
-            </Box>
+            <Image src="/icon.svg" width={32} height={32} alt="Drift" priority className="h-8 w-8" />
             <AppText variant="subheading" weight={600} className="text-[17px]">Drift</AppText>
             <Box className="max-md:hidden">
               <StatusBadge tone="neutral">Phase 1</StatusBadge>

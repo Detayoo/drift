@@ -182,7 +182,7 @@ export function HomeScreen() {
             )}
 
             {status === "error" && (
-              <Box gap="md" bordered border="line" tint="err-bg" pad="lg" className="border-l-2 border-l-err" role="alert">
+              <Box gap="md" tint="err-bg" pad="lg" className="border-l-2 border-l-err" role="alert">
                 <AppText variant="subheading" weight={600}>That didn&apos;t go through</AppText>
                 <AppText variant="small" tone="secondary">{error ?? "Upload failed."}</AppText>
                 <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
