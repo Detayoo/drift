@@ -9,16 +9,12 @@ import { TextField } from "@/components/fields";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
+import { fetchJson, isNetworkFailure } from "@/lib/http";
 import { normalizeDeviceUrl } from "@/lib/invite";
 
 type SendState = "idle" | "offering" | "awaiting" | "sending" | "done" | "declined" | "error";
 
 const LAST_DEVICE_KEY = "drift-last-device";
-
-async function readError(res: Response, fallback: string): Promise<string> {
-  const body = (await res.json().catch(() => null)) as { error?: string } | null;
-  return body?.error ?? `${fallback} (HTTP ${res.status}).`;
-}
 
 /**
  * Device-to-device sender. Offer first, stream only on accept,
@@ -94,15 +90,19 @@ export function SendToDevice({
     setError(null);
     let offerId: string;
     try {
-      const res = await fetch(`${base}/api/offers`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ filename: file.name, size: file.size, fromId: deviceId, fromName: deviceName }),
-      });
-      if (!res.ok) throw new Error(await readError(res, "The other device refused the offer."));
-      offerId = ((await res.json()) as { id: string }).id;
+      offerId = (
+        await fetchJson<{ id: string }>(`${base}/api/offers`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ filename: file.name, size: file.size, fromId: deviceId, fromName: deviceName }),
+        })
+      ).id;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't reach that device. Same Wi-Fi on both?");
+      const message =
+        err instanceof Error && !isNetworkFailure(err)
+          ? err.message
+          : "Couldn't reach that device. Same Wi-Fi on both?";
+      setError(message);
       setState("error");
       return;
     }
@@ -112,9 +112,7 @@ export function SendToDevice({
     pollRef.current = window.setInterval(async () => {
       tries += 1;
       try {
-        const res = await fetch(`${base}/api/offers/${offerId}`);
-        if (!res.ok) throw new Error();
-        const offer = (await res.json()) as { state: string; grant?: string };
+        const offer = await fetchJson<{ state: string; grant?: string }>(`${base}/api/offers/${offerId}`);
         if (offer.state === "accepted" && offer.grant) {
           stopPoll();
           setState("sending");

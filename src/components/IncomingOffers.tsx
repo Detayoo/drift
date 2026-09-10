@@ -6,6 +6,7 @@ import { Dialog } from "@/components/Dialog";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { formatBytes } from "@/lib/upload";
+import { fetchJson } from "@/lib/http";
 import { useToast } from "@/components/Toast";
 
 type IncomingOffer = {
@@ -31,9 +32,7 @@ export function IncomingOffers({ onReceived }: { onReceived: () => void }) {
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/offers");
-      if (!res.ok) return;
-      setOffers(((await res.json()) as { offers: IncomingOffer[] }).offers);
+      setOffers((await fetchJson<{ offers: IncomingOffer[] }>("/api/offers")).offers);
     } catch {
       return;
     }
@@ -48,8 +47,7 @@ export function IncomingOffers({ onReceived }: { onReceived: () => void }) {
   const decide = async (id: string, accept: boolean) => {
     setBusyId(id);
     try {
-      const res = await fetch(`/api/offers/${id}/${accept ? "accept" : "reject"}`, { method: "POST" });
-      if (!res.ok) throw new Error();
+      await fetchJson(`/api/offers/${id}/${accept ? "accept" : "reject"}`, { method: "POST" });
       if (accept) celebrated.current.add(id);
       await refresh();
     } catch {
@@ -63,9 +61,7 @@ export function IncomingOffers({ onReceived }: { onReceived: () => void }) {
     const check = async () => {
       for (const id of celebrated.current) {
         try {
-          const res = await fetch(`/api/offers/${id}`);
-          if (!res.ok) continue;
-          const offer = (await res.json()) as { state: string };
+          const offer = await fetchJson<{ state: string }>(`/api/offers/${id}`);
           if (offer.state === "done") {
             celebrated.current.delete(id);
             onReceived();

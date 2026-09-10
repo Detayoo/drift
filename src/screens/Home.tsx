@@ -20,6 +20,7 @@ import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
 import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
+import { fetchJson } from "@/lib/http";
 import { buildInviteLink, parseInvite } from "@/lib/invite";
 import { getDeviceId, getDeviceName, setDeviceName as persistDeviceName, shortId } from "@/lib/device";
 import { useToast } from "@/components/Toast";
@@ -48,9 +49,7 @@ export function HomeScreen() {
 
   const refreshReceived = useCallback(async () => {
     try {
-      const res = await fetch("/api/transfers");
-      if (!res.ok) throw new Error();
-      const body = (await res.json()) as { files: ReceivedFile[] };
+      const body = await fetchJson<{ files: ReceivedFile[] }>("/api/transfers");
       setReceived(body.files);
       setListState("ready");
     } catch {
@@ -72,9 +71,7 @@ export function HomeScreen() {
   const loadNet = useCallback(async () => {
     setNetState("loading");
     try {
-      const res = await fetch("/api/network");
-      if (!res.ok) throw new Error();
-      setNet((await res.json()) as NetworkInfo);
+      setNet(await fetchJson<NetworkInfo>("/api/network"));
       setNetState("ready");
     } catch {
       setNetState("error");

@@ -1,3 +1,5 @@
+import { readError } from "@/lib/http";
+
 export type UploadResult = {
   id: string;
   filename: string;
@@ -61,9 +63,6 @@ export async function uploadFile(
   };
   const res = await fetch(`${base}/api/transfers`, init);
 
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(body?.error ?? `Upload failed (HTTP ${res.status}).`);
-  }
+  if (!res.ok) throw new Error(await readError(res, "Upload failed"));
   return (await res.json()) as UploadResult;
 }
