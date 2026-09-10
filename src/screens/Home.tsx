@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCopy, IconFile, IconFileCheck, IconInbox, IconPencil, IconQrcode, IconReload, IconWifi } from "@tabler/icons-react";
+import { IconCopy, IconFile, IconFileCheck, IconInbox, IconQrcode, IconReload, IconWifi } from "@tabler/icons-react";
 import QRCode from "react-qr-code";
 import { useCallback, useEffect, useState } from "react";
 import { AppButton } from "@/components/AppButton";
@@ -8,9 +8,9 @@ import { CommandPalette, usePaletteHotkey } from "@/components/CommandPalette";
 import { Dialog } from "@/components/Dialog";
 import { DropZone } from "@/components/DropZone";
 import { IncomingOffers } from "@/components/IncomingOffers";
+import { InlineEdit } from "@/components/InlineEdit";
 import { SendToDevice } from "@/components/SendToDevice";
 import { IconButton } from "@/components/IconButton";
-import { TextField } from "@/components/fields";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader, useSiteCommands } from "@/components/SiteHeader";
 import { StatusBadge, StatusDot } from "@/components/Status";
@@ -63,8 +63,6 @@ export function HomeScreen() {
 
   const [deviceId, setDeviceId] = useState("");
   const [deviceName, setDeviceName] = useState("");
-  const [editingName, setEditingName] = useState(false);
-  const [draftName, setDraftName] = useState("");
   const [net, setNet] = useState<NetworkInfo | null>(null);
   const [netState, setNetState] = useState<ListState>("loading");
   const [qrOpen, setQrOpen] = useState(false);
@@ -88,10 +86,9 @@ export function HomeScreen() {
     void loadNet();
   }, [loadNet]);
 
-  const saveName = () => {
-    const clean = persistDeviceName(draftName);
+  const commitName = (next: string) => {
+    const clean = persistDeviceName(next);
     setDeviceName(clean);
-    setEditingName(false);
     notify({
       title: clean ? `This device is now “${clean}”` : "Device name cleared",
       message: "Other devices will see this name.",
@@ -268,29 +265,13 @@ export function HomeScreen() {
               <AppText variant="section" headingLevel={2}>This device</AppText>
               <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg">
                 <AppText variant="micro" tone="faint">identity</AppText>
-                {editingName ? (
-                  <Box direction="row" gap="sm" align="end" className="max-md:flex-col max-md:items-stretch">
-                    <TextField
-                      name="device-name"
-                      label="Device name"
-                      value={draftName}
-                      onChange={(e) => setDraftName(e.target.value)}
-                      placeholder="Tayo's laptop"
-                      containerClassName="flex-1"
-                    />
-                    <AppButton label="Save device name" size="sm" onClick={saveName}>
-                      Save
-                    </AppButton>
-                  </Box>
-                ) : (
-                  <Box direction="row" align="center" gap="sm">
-                    <Box className="min-w-0 flex-1">
-                      <AppText variant="subheading" weight={600} truncate>{deviceName || "Unnamed device"}</AppText>
-                      <AppText variant="mono" tone="faint">id {deviceId ? shortId(deviceId) : "····"}</AppText>
-                    </Box>
-                    <IconButton icon={IconPencil} label="Rename this device" onClick={() => { setDraftName(deviceName); setEditingName(true); }} />
-                  </Box>
-                )}
+                <InlineEdit
+                  value={deviceName}
+                  emptyText="Unnamed device"
+                  label="Device name"
+                  onCommit={commitName}
+                />
+                <AppText variant="mono" tone="faint">id {deviceId ? shortId(deviceId) : "····"}</AppText>
                 <Divider />
                 <Box direction="row" align="center" gap="sm">
                   <StatusDot tone={netState === "error" ? "err" : "ok"} pulse={netState === "loading"} />
