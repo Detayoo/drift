@@ -5,7 +5,7 @@ import { Box } from "@/components/primitives/Box";
 const probe = [
   "(function(){",
   "var show=function(){var el=document.getElementById('drift-boot-error');if(el){el.style.display='flex';}};",
-  "window.addEventListener('error',function(){if(!window.__drift_ok)show();},true);",
+  "window.addEventListener('error',function(e){if(e.target!==window)return;if(!window.__drift_ok)show();},true);",
   "window.addEventListener('unhandledrejection',function(){if(!window.__drift_ok)show();});",
   "setTimeout(function(){if(!window.__drift_ok)show();},10000);",
   "})();",

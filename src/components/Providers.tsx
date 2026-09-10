@@ -9,6 +9,7 @@ import { ToastProvider } from "@/components/Toast";
 export function Providers({ children }: { children?: ReactNode }) {
   useEffect(() => {
     (window as unknown as { __drift_ok?: boolean }).__drift_ok = true;
+    document.getElementById("drift-boot-error")?.style.setProperty("display", "none");
   }, []);
   return (
     <ThemeProvider>
