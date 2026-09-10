@@ -1,4 +1,4 @@
-import { readError } from "@/lib/http";
+import { isNetworkFailure, readError } from "@/lib/http";
 
 export type UploadResult = {
   id: string;
@@ -31,14 +31,34 @@ export function formatBytes(n: number): string {
   return `${value.toFixed(value >= 100 ? 0 : 1)} ${units[unit]}`;
 }
 
+let streamingCache: boolean | null = null;
+
 /**
- * Uploads a file as a raw binary stream. Bytes are counted as they leave
- * (never buffered), so progress is exact and memory stays flat.
+ * Safari and Firefox reject streaming upload bodies. Probe once with a
+ * throwaway Request (never sent) and remember the answer.
  */
-export async function uploadFile(
+export function supportsStreamingUpload(): boolean {
+  if (streamingCache === null) {
+    try {
+      new Request("https://localhost/", {
+        method: "POST",
+        body: new ReadableStream(),
+        duplex: "half",
+      } as RequestInit & { duplex: "half" });
+      streamingCache = true;
+    } catch {
+      streamingCache = false;
+    }
+  }
+  return streamingCache;
+}
+
+function uploadStreamed(
   file: File,
+  target: string,
+  headers: Record<string, string>,
   onProgress: (sent: number) => void,
-  opts?: { baseUrl?: string; path?: string; grant?: string; signal?: AbortSignal },
+  signal?: AbortSignal,
 ): Promise<UploadResult> {
   let sent = 0;
   const counter = new TransformStream<Uint8Array, Uint8Array>({
@@ -48,24 +68,92 @@ export async function uploadFile(
       controller.enqueue(chunk);
     },
   });
-
-  const base = (opts?.baseUrl ?? "").replace(/\/+$/, "");
-  const target = `${base}${opts?.path ?? "/api/transfers"}`;
   const init: RequestInit & { duplex: "half" } = {
     method: "POST",
-    headers: {
-      "content-type": "application/octet-stream",
-      "x-drift-filename": encodeURIComponent(file.name),
-      "x-drift-size": String(file.size),
-      "x-drift-type": file.type || "application/octet-stream",
-      ...(opts?.grant ? { "x-drift-grant": opts.grant } : {}),
-    },
+    headers,
     body: file.stream().pipeThrough(counter),
     duplex: "half",
-    signal: opts?.signal,
+    signal,
   };
-  const res = await fetch(target, init);
+  return finishUpload(fetch(target, init));
+}
 
-  if (!res.ok) throw new Error(await readError(res, "Upload failed"));
-  return (await res.json()) as UploadResult;
+/**
+ * Fallback for engines without upload streaming. The File goes as one
+ * body (the browser streams it off disk) with real progress events.
+ */
+function uploadXhr(
+  file: File,
+  target: string,
+  headers: Record<string, string>,
+  onProgress: (sent: number) => void,
+  signal?: AbortSignal,
+): Promise<UploadResult> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", target);
+    for (const [key, value] of Object.entries(headers)) xhr.setRequestHeader(key, value);
+    signal?.addEventListener("abort", () => xhr.abort(), { once: true });
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded);
+    };
+    xhr.onload = () => {
+      let body: { error?: string } | null = null;
+      try {
+        body = JSON.parse(xhr.responseText) as { error?: string };
+      } catch {
+        body = null;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(body as UploadResult);
+      else reject(new Error(body?.error ?? `Upload failed (HTTP ${xhr.status}).`));
+    };
+    xhr.onerror = () => reject(new TypeError("Failed to fetch"));
+    xhr.onabort = () => reject(new DOMException("Aborted", "AbortError"));
+    xhr.send(file);
+  });
+}
+
+async function finishUpload(res: Promise<Response>): Promise<UploadResult> {
+  const done = await res;
+  if (!done.ok) throw new Error(await readError(done, "Upload failed"));
+  return (await done.json()) as UploadResult;
+}
+
+/**
+ * Uploads a file as raw binary. Streaming engines count exact bytes as
+ * they leave; the rest fall back to XHR progress. Memory stays flat
+ * either way — the file is never buffered in JavaScript.
+ */
+export async function uploadFile(
+  file: File,
+  onProgress: (sent: number) => void,
+  opts?: { baseUrl?: string; path?: string; grant?: string; signal?: AbortSignal },
+): Promise<UploadResult> {
+  const base = (opts?.baseUrl ?? "").replace(/\/+$/, "");
+  const target = `${base}${opts?.path ?? "/api/transfers"}`;
+  const headers: Record<string, string> = {
+    "content-type": "application/octet-stream",
+    "x-drift-filename": encodeURIComponent(file.name),
+    "x-drift-size": String(file.size),
+    "x-drift-type": file.type || "application/octet-stream",
+    ...(opts?.grant ? { "x-drift-grant": opts.grant } : {}),
+  };
+
+  if (!supportsStreamingUpload()) {
+    return uploadXhr(file, target, headers, onProgress, opts?.signal);
+  }
+  let sent = 0;
+  try {
+    return await uploadStreamed(file, target, headers, (n) => {
+      sent = n;
+      onProgress(n);
+    }, opts?.signal);
+  } catch (err) {
+    if (sent > 0 || !isNetworkFailure(err)) throw err;
+    return uploadXhr(file, target, headers, onProgress, opts?.signal);
+  }
 }

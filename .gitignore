@@ -46,3 +46,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# transfer data is always local, never commit user files
+/.drift-inbox/
+/.drift-staging/
