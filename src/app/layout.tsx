@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Providers } from "@/components/Providers";
 import { ThemeScript } from "@/components/ThemeScript";
@@ -32,6 +32,13 @@ const display = localFont({
 export const metadata: Metadata = {
   title: "LocalDrop — Move files directly between your devices",
   description: "Local-first, device-to-device file transfer. No cloud. No account. Just your network.",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
