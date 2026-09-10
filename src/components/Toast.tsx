@@ -99,7 +99,7 @@ export function ToastProvider({
                 initial={POP.initial}
                 animate={POP.animate}
                 exit={POP.exit}
-                className={`pointer-events-auto flex w-full items-start gap-3 rounded-md border border-line border-l-2 p-4 ${config.frame}`}
+                className={`pointer-events-auto flex w-full items-start gap-3 border border-line border-l-2 p-4 ${config.frame}`}
               >
                 <Icon icon={config.Icon} size={20} className={`mt-0.5 ${config.iconClass}`} />
                 <Box gap="xs" className="min-w-0 flex-1">
