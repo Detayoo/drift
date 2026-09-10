@@ -27,7 +27,7 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
             </Box>
             <AppText variant="subheading" weight={600} className="text-[17px]">LocalDrop</AppText>
             <Box className="max-md:hidden">
-              <StatusBadge tone="neutral">Phase 0</StatusBadge>
+              <StatusBadge tone="neutral">Phase 1</StatusBadge>
             </Box>
           </Box>
           <Box direction="row" align="center" gap="sm">
@@ -52,19 +52,18 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
 export function useSiteCommands(scrollTo: (id: string) => void): Command[] {
   const { toggle } = useTheme();
   const { notify } = useToast();
+  const focusDropzone = () => document.getElementById("dropzone")?.focus();
   return [
     { id: "theme", label: "Toggle theme", hint: "light / dark", icon: IconCommand, run: toggle },
-    { id: "how", label: "Go to How it will work", icon: IconArrowUpRight, run: () => scrollTo("how") },
-    { id: "principles", label: "Go to Principles", icon: IconArrowUpRight, run: () => scrollTo("principles") },
-    { id: "roadmap", label: "Go to Build order", icon: IconArrowUpRight, run: () => scrollTo("roadmap") },
-    { id: "system", label: "Go to Design system", icon: IconArrowUpRight, run: () => scrollTo("system") },
+    { id: "send", label: "Send a file", icon: IconArrowUpRight, run: () => { scrollTo("dropzone"); focusDropzone(); } },
+    { id: "received", label: "View received files", icon: IconArrowUpRight, run: () => scrollTo("received") },
     {
       id: "status",
       label: "Copy build status",
       hint: "clipboard",
       icon: IconArrowUpRight,
       run: () => {
-        void navigator.clipboard?.writeText("LocalDrop — Phase 0 foundation. Transfer engine not built yet.").then(
+        void navigator.clipboard?.writeText("drift — Phase 1 streaming primitive. Same-device transfers work.").then(
           () => notify({ title: "Copied", message: "Build status is on your clipboard.", tone: "ok" }),
           () => notify({ title: "Copy failed", message: "Clipboard refused access.", tone: "err" }),
         );

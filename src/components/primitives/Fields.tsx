@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 const fieldShell =
   "w-full bg-raised text-ink text-[14px] rounded-md border border-field outline-none transition-colors placeholder:text-ink-faint focus:border-accent disabled:cursor-not-allowed disabled:opacity-50";
 
-export function FieldInput({ className, ...rest }: ComponentProps<"input">) {
-  return <input {...rest} className={cn(fieldShell, "h-12 px-3.5", className)} />;
+export function FieldInput({ className, ref, ...rest }: ComponentProps<"input"> & { ref?: React.Ref<HTMLInputElement> }) {
+  return <input ref={ref} {...rest} className={cn(fieldShell, "h-12 px-3.5", className)} />;
 }
 
 export function FieldArea({ className, ...rest }: ComponentProps<"textarea">) {

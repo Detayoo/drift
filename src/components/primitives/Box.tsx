@@ -1,4 +1,4 @@
-import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
+import type { CSSProperties, DragEventHandler, KeyboardEventHandler, MouseEventHandler, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 type Pad = "none" | "xs" | "sm" | "md" | "lg" | "xl";
 type Gap = "none" | "xs" | "sm" | "md" | "lg" | "xl";
@@ -83,6 +83,11 @@ export type BoxProps = {
   radius?: Radius;
   onClick?: MouseEventHandler<HTMLDivElement>;
   onHover?: () => void;
+  onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
+  onDragOver?: DragEventHandler<HTMLDivElement>;
+  onDragLeave?: DragEventHandler<HTMLDivElement>;
+  onDrop?: DragEventHandler<HTMLDivElement>;
+  tabIndex?: number;
 };
 
 /** The only <div> in the system. Every rectangle is a Box with props. */
@@ -105,6 +110,11 @@ export function Box({
   radius = "none",
   onClick,
   onHover,
+  onKeyDown,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  tabIndex,
 }: BoxProps) {
   const flex = direction ?? (gap !== "none" || align || justify ? "col" : undefined);
   return (
@@ -115,6 +125,11 @@ export function Box({
       style={style}
       onClick={onClick}
       onMouseEnter={onHover}
+      onKeyDown={onKeyDown}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+      tabIndex={tabIndex}
       className={cn(
         flex === "row" && "flex flex-row",
         flex === "col" && "flex flex-col",
