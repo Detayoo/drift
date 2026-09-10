@@ -1,7 +1,7 @@
 "use client";
 
 import { IconPencil } from "@tabler/icons-react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ActionButton } from "@/components/primitives/ActionButton";
 import { AppText } from "@/components/primitives/AppText";
 import { FieldInput } from "@/components/primitives/Fields";
@@ -27,6 +27,9 @@ export function InlineEdit({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
   const settled = useRef(false);
+  const selectOnMount = useCallback((el: HTMLInputElement | null) => {
+    el?.select();
+  }, []);
 
   if (!editing) {
     return (
@@ -56,9 +59,8 @@ export function InlineEdit({
 
   return (
     <FieldInput
-      ref={(el) => {
-        el?.select();
-      }}
+      ref={selectOnMount}
+      autoFocus
       aria-label={label}
       value={draft}
       maxLength={maxLength}
@@ -69,7 +71,7 @@ export function InlineEdit({
         if (e.key === "Enter") finish(true);
         if (e.key === "Escape") finish(false);
       }}
-      className="h-11 text-[16px] font-medium"
+      className="h-11 text-[16px] font-medium focus-visible:outline-none"
     />
   );
 }
