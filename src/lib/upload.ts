@@ -5,6 +5,15 @@ export type UploadResult = {
   ms: number;
 };
 
+export const MAX_UPLOAD_BYTES = 5 * 1024 ** 3;
+
+/** Shared client-side gate, mirrored by the server. Returns the problem or null. */
+export function validateFile(file: File): string | null {
+  if (file.size === 0) return "That file is empty — pick one with content.";
+  if (file.size > MAX_UPLOAD_BYTES) return "That file is over the 5 GB limit.";
+  return null;
+}
+
 export function formatBytes(n: number): string {
   if (!Number.isFinite(n) || n < 0) return "0 B";
   if (n < 1024) return `${n} B`;
@@ -25,7 +34,7 @@ export function formatBytes(n: number): string {
 export async function uploadFile(
   file: File,
   onProgress: (sent: number) => void,
-  signal?: AbortSignal,
+  opts?: { baseUrl?: string; grant?: string; signal?: AbortSignal },
 ): Promise<UploadResult> {
   let sent = 0;
   const counter = new TransformStream<Uint8Array, Uint8Array>({
@@ -36,6 +45,7 @@ export async function uploadFile(
     },
   });
 
+  const base = (opts?.baseUrl ?? "").replace(/\/+$/, "");
   const init: RequestInit & { duplex: "half" } = {
     method: "POST",
     headers: {
@@ -43,12 +53,13 @@ export async function uploadFile(
       "x-drift-filename": encodeURIComponent(file.name),
       "x-drift-size": String(file.size),
       "x-drift-type": file.type || "application/octet-stream",
+      ...(opts?.grant ? { "x-drift-grant": opts.grant } : {}),
     },
     body: file.stream().pipeThrough(counter),
     duplex: "half",
-    signal,
+    signal: opts?.signal,
   };
-  const res = await fetch("/api/transfers", init);
+  const res = await fetch(`${base}/api/transfers`, init);
 
   if (!res.ok) {
     const body = (await res.json().catch(() => null)) as { error?: string } | null;

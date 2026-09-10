@@ -4,6 +4,7 @@ import { createWriteStream, promises as fs } from "node:fs";
 import path from "node:path";
 import { PassThrough, Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
+import { consumeGrant, finishOffer, markProgress } from "@/server/offers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,6 +51,12 @@ export async function POST(req: NextRequest) {
   if (declared > MAX_BYTES)
     return fail(`That file is larger than the 5 GB Phase 1 limit.`, 413);
 
+  const grant = req.headers.get("x-drift-grant");
+  const grantOffer = grant ? consumeGrant(grant) : null;
+  if (grant && !grantOffer) {
+    return fail("That transfer approval expired or was already used.", 403);
+  }
+
   await fs.mkdir(INBOX, { recursive: true });
   const stored = `${id}-${filename}`;
   const dest = path.join(INBOX, stored);
@@ -61,6 +68,7 @@ export async function POST(req: NextRequest) {
   const tap = new PassThrough();
   tap.on("data", (chunk: Buffer) => {
     received += chunk.length;
+    if (grantOffer) markProgress(grantOffer.id, received, declared);
     if (received / declared >= nextMark && nextMark < 1) {
       log(`${Math.round(nextMark * 100)}% (${received}/${declared} bytes)`);
       nextMark += 0.25;
@@ -71,6 +79,7 @@ export async function POST(req: NextRequest) {
     await pipeline(Readable.fromWeb(req.body as import("node:stream/web").ReadableStream), tap, createWriteStream(dest));
   } catch (err) {
     await fs.rm(dest, { force: true });
+    if (grantOffer) finishOffer(grantOffer.id, false);
     log("stream failed:", err instanceof Error ? err.message : err);
     return fail("The connection broke mid-transfer. Nothing was kept.", 500);
   }
@@ -78,14 +87,16 @@ export async function POST(req: NextRequest) {
   const stat = await fs.stat(dest);
   if (stat.size !== declared) {
     await fs.rm(dest, { force: true });
+    if (grantOffer) finishOffer(grantOffer.id, false);
     log(`incomplete: kept ${stat.size}/${declared} bytes, discarded`);
     return fail(`Only ${stat.size} of ${declared} bytes arrived. Nothing was kept.`, 422);
   }
 
   const ms = Date.now() - started;
+  if (grantOffer) finishOffer(grantOffer.id, true);
   log(`persisted ${stat.size} bytes in ${ms}ms -> ${stored}`);
   return NextResponse.json(
-    { id, filename, bytes: stat.size, ms },
+    { id, filename, bytes: stat.size, ms, ...(grantOffer ? { offerId: grantOffer.id } : {}) },
     { headers: { "x-transfer-id": id } },
   );
 }

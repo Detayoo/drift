@@ -17,6 +17,7 @@ export function Dialog({
   description,
   children,
   label,
+  closable = true,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,6 +25,7 @@ export function Dialog({
   description?: ReactNode;
   children?: ReactNode;
   label: string;
+  closable?: boolean;
 }) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -56,9 +58,13 @@ export function Dialog({
                 </DialogPrimitive.Description>
               ) : null}
             </Box>
-            <DialogPrimitive.Close asChild>
-              <IconButton icon={IconX} label="Close dialog" />
-            </DialogPrimitive.Close>
+            {closable ? (
+              <DialogPrimitive.Close asChild>
+                <IconButton icon={IconX} label="Close dialog" />
+              </DialogPrimitive.Close>
+            ) : (
+              <Box className="h-10 w-10" />
+            )}
           </Box>
           {children}
         </DialogPrimitive.Content>

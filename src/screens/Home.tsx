@@ -7,6 +7,8 @@ import { AppButton } from "@/components/AppButton";
 import { CommandPalette, usePaletteHotkey } from "@/components/CommandPalette";
 import { Dialog } from "@/components/Dialog";
 import { DropZone } from "@/components/DropZone";
+import { IncomingOffers } from "@/components/IncomingOffers";
+import { SendToDevice } from "@/components/SendToDevice";
 import { IconButton } from "@/components/IconButton";
 import { TextField } from "@/components/fields";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -17,7 +19,7 @@ import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
-import { formatBytes, uploadFile, type UploadResult } from "@/lib/upload";
+import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
 import { getDeviceId, getDeviceName, setDeviceName as persistDeviceName, shortId } from "@/lib/device";
 import { useToast } from "@/components/Toast";
 import type { NetworkInfo } from "@/app/api/network/route";
@@ -25,8 +27,6 @@ import type { ReceivedFile } from "@/app/api/transfers/route";
 
 type Status = "idle" | "ready" | "uploading" | "done" | "error";
 type ListState = "loading" | "error" | "ready";
-
-const MAX_BYTES = 5 * 1024 ** 3;
 
 function scrollTo(id: string) {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -107,15 +107,10 @@ export function HomeScreen() {
   };
 
   const choose = useCallback((next: File) => {
-    if (next.size === 0) {
+    const problem = validateFile(next);
+    if (problem) {
       setFile(null);
-      setError("That file is empty — pick one with content.");
-      setStatus("error");
-      return;
-    }
-    if (next.size > MAX_BYTES) {
-      setFile(null);
-      setError("That file is over the 5 GB Phase 1 limit.");
+      setError(problem);
       setStatus("error");
       return;
     }
@@ -170,7 +165,8 @@ export function HomeScreen() {
             </AppText>
           </Box>
 
-          {/* ── Transfer surface ── */}
+          {/* ── Transfer surface (this machine) ── */}
+          <IncomingOffers onReceived={refreshReceived} />
           <Box gap="md" className="pb-4">
             {status === "idle" && (
               <Box id="dropzone">
@@ -250,6 +246,19 @@ export function HomeScreen() {
               </Box>
             )}
           </Box>
+
+          <Divider />
+
+          {/* ── Send to another device ── */}
+          <Section label="Send to another device">
+            <Box id="send" gap="md" className="scroll-mt-24 py-12">
+              <AppText variant="section" headingLevel={2}>Send to another device</AppText>
+              <AppText variant="body" tone="secondary" className="max-w-[56ch]">
+                Point this at Drift running on the same Wi-Fi. They accept first — nothing streams until they do.
+              </AppText>
+              <SendToDevice deviceId={deviceId} deviceName={deviceName} />
+            </Box>
+          </Section>
 
           <Divider />
 
@@ -354,7 +363,7 @@ export function HomeScreen() {
 
           <Box className="py-8">
             <AppText variant="micro" tone="faint">
-              Phase 1 · same-device primitive. Network transfers arrive in Phase 3 — discovery in Phase 4.
+              Phase 3 · offer first, stream on accept. Automatic discovery arrives in Phase 4.
             </AppText>
           </Box>
         </Container>
