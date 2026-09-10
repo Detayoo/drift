@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
+import { Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
@@ -13,15 +14,7 @@ const body = localFont({
   display: "swap",
 });
 
-const mono = localFont({
-  src: [
-    { path: "./fonts/Iosevka-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/Iosevka-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/Iosevka-Bold.woff2", weight: "700", style: "normal" },
-  ],
-  variable: "--font-mono",
-  display: "swap",
-});
+const mono = Geist_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 const display = localFont({
   src: [{ path: "./fonts/TomatoGrotesk-Medium.otf", weight: "500", style: "normal" }],
