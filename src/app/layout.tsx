@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import { JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
 const body = localFont({
   src: [
-    { path: "./fonts/RebondGrotesque-Light.woff2", weight: "300", style: "normal" },
-    { path: "./fonts/RebondGrotesque-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/RebondGrotesque-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/RebondGrotesque-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/PPMori-Regular.otf", weight: "400", style: "normal" },
+    { path: "./fonts/PPMori-SemiBold.otf", weight: "600", style: "normal" },
   ],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = localFont({
+  src: [
+    { path: "./fonts/Iosevka-Regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/Iosevka-Medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/Iosevka-Bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -21,7 +28,6 @@ const display = localFont({
   variable: "--font-display",
   display: "swap",
 });
-const mono = JetBrains_Mono({ variable: "--font-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "LocalDrop — Move files directly between your devices",
