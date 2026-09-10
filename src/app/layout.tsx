@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
+import { BootProbe } from "@/components/BootProbe";
 import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning className="h-full antialiased">
       <body className={`${display.variable} ${body.variable} ${mono.variable} flex min-h-full flex-col`}>
         <ThemeScript />
+        <BootProbe />
         <Providers>{children}</Providers>
       </body>
     </html>

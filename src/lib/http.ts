@@ -11,7 +11,8 @@ export async function readError(res: Response, fallback: string): Promise<string
 
 export async function fetchJson<T>(url: string, init?: RequestInit & { timeoutMs?: number }): Promise<T> {
   const { timeoutMs = 10000, ...rest } = init ?? {};
-  const res = await fetch(url, { ...rest, signal: AbortSignal.timeout(timeoutMs) });
+  const timeout = typeof AbortSignal.timeout === "function" ? AbortSignal.timeout(timeoutMs) : undefined;
+  const res = await fetch(url, timeout ? { ...rest, signal: timeout } : rest);
   if (!res.ok) throw new Error(await readError(res, "Request failed"));
   return (await res.json()) as T;
 }
