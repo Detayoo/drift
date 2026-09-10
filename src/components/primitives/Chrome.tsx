@@ -2,21 +2,18 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Box } from "./Box";
 
-/** Page-width shell. Desktop max 1440px, fluid gutters that tighten downward. */
+/** Page-width shell. Capped at 700px, fluid gutters that tighten downward. */
 export function Container({
   children,
   className,
-  narrow = false,
 }: {
   children?: ReactNode;
   className?: string;
-  narrow?: boolean;
 }) {
   return (
     <Box
       className={cn(
-        "mx-auto w-full px-8 max-lg:px-6 max-md:px-4",
-        narrow ? "max-w-[960px]" : "max-w-[1440px]",
+        "mx-auto w-full max-w-[700px] px-8 max-lg:px-6 max-md:px-4",
         className,
       )}
     >
