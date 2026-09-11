@@ -442,7 +442,7 @@ export function HomeScreen() {
 
           <Box className="py-8">
             <AppText variant="micro" tone="faint">
-              Phase 4 · nearby machines appear on their own, browsers pick up links. Discovery is UDP broadcast — guest networks may block it.
+              Nearby machines appear on their own, browsers pick up links. Discovery is UDP broadcast — guest networks may block it.
             </AppText>
           </Box>
         </Container>

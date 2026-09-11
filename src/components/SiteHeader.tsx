@@ -8,7 +8,6 @@ import { Box } from "@/components/primitives/Box";
 import { Container, AppHeader } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
 import type { Command } from "@/components/CommandPalette";
-import { StatusBadge } from "@/components/Status";
 import { ThemeToggle, useTheme } from "@/components/theme";
 import { useToast } from "@/components/Toast";
 
@@ -21,9 +20,6 @@ export function SiteHeader({ commands, onOpenPalette }: { commands: Command[]; o
           <Box direction="row" align="center" gap="sm">
             <Image src="/icon.svg" width={32} height={32} alt="Drift" priority className="h-8 w-8" />
             <AppText variant="subheading" weight={600} className="text-[17px]">Drift</AppText>
-            <Box className="max-md:hidden">
-              <StatusBadge tone="neutral">Phase 4</StatusBadge>
-            </Box>
           </Box>
           <Box direction="row" align="center" gap="sm">
             <ActionButton
@@ -57,7 +53,7 @@ export function useSiteCommands(scrollTo: (id: string) => void): Command[] {
       hint: "clipboard",
       icon: IconArrowUpRight,
       run: () => {
-        void navigator.clipboard?.writeText("drift — Phase 4 nearby discovery with pickup links.").then(
+        void navigator.clipboard?.writeText("Drift — local file transfer. No cloud, no account.").then(
           () => notify({ title: "Copied", message: "Build status is on your clipboard.", tone: "ok" }),
           () => notify({ title: "Copy failed", message: "Clipboard refused access.", tone: "err" }),
         );

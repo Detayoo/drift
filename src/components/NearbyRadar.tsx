@@ -36,7 +36,7 @@ export function NearbyRadar({ peers }: { peers: NearbyPeer[] }) {
           <Box
             key={ring}
             radius="full"
-            className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 border border-accent opacity-20"
+            className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 border border-ink opacity-20"
           />
         ) : (
           <motion.span
@@ -44,7 +44,7 @@ export function NearbyRadar({ peers }: { peers: NearbyPeer[] }) {
             initial={{ scale: 0.35, opacity: 0.55 }}
             animate={{ scale: 1.7, opacity: 0 }}
             transition={{ duration: 2.6, repeat: Infinity, delay: ring * 0.85, ease: "easeOut" }}
-            className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent"
+            className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-ink"
           />
         ),
       )}
@@ -60,14 +60,14 @@ export function NearbyRadar({ peers }: { peers: NearbyPeer[] }) {
               exit={{ scale: 0, opacity: 0 }}
               transition={{ type: "spring", stiffness: 400, damping: 22 }}
               style={{ left: `calc(50% + ${pos.x}%)`, top: `calc(50% + ${pos.y}%)` }}
-              className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent"
+              className="absolute h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink"
             />
           );
         })}
       </AnimatePresence>
       <Box gap="xs" align="center" className="relative">
-        <Box align="center" justify="center" radius="full" tint="accent" className="h-16 w-16">
-          <Icon icon={IconRadar} size={26} className="text-on-accent" />
+        <Box align="center" justify="center" radius="full" className="h-16 w-16 bg-ink">
+          <Icon icon={IconRadar} size={26} className="text-paper" />
         </Box>
         <Box role="status" label="Nearby device count">
           <AppText variant="mono" tone="secondary">

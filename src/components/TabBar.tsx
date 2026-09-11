@@ -103,6 +103,7 @@ export function TabBar({
       {items.map((item) => {
         const active = item.id === activeId;
         const showLabel = labels === "always" || (labels === "active" && active);
+        const tone = !active ? "text-ink-3 hover:text-ink" : glassActive ? "text-paper" : "text-ink";
         const tab = (
           <ActionButton
             key={item.id}
@@ -122,7 +123,7 @@ export function TabBar({
                       "max-sm:h-11 max-sm:w-11 max-sm:justify-center max-sm:rounded-full max-sm:p-0",
                   )
                 : "h-12 w-12 justify-center rounded-full p-0",
-              active ? "text-ink" : "text-ink-3 hover:text-ink",
+              tone,
             )}
           >
             {active && (
@@ -133,7 +134,7 @@ export function TabBar({
                 }
                 className={cn(
                   "absolute inset-0 border border-line",
-                  glassActive ? "bg-raised/70 backdrop-blur-md backdrop-saturate-150" : "bg-raised",
+                  glassActive ? "bg-ink/85 backdrop-blur-xl backdrop-saturate-150" : "bg-raised",
                   showLabel
                     ? cn(
                         rail ? "rounded-xl" : "rounded-full",
@@ -143,7 +144,7 @@ export function TabBar({
                 )}
               >
                 {glassActive && (
-                  <span aria-hidden className="absolute inset-x-3 top-[3px] h-px rounded-full bg-white/50 dark:bg-white/25" />
+                  <span aria-hidden className="absolute inset-x-3 top-[3px] h-px rounded-full bg-white/60 dark:bg-black/30" />
                 )}
               </motion.span>
             )}
