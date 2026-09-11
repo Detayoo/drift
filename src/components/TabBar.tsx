@@ -36,6 +36,7 @@ export function TabBar({
   label,
   labels = "always",
   docked = "none",
+  collapseOnMobile = true,
   tipSide = "top",
   className,
 }: {
@@ -45,6 +46,7 @@ export function TabBar({
   label: string;
   labels?: TabBarLabels;
   docked?: TabBarDocked;
+  collapseOnMobile?: boolean;
   tipSide?: TooltipSide;
   className?: string;
 }) {
@@ -85,12 +87,14 @@ export function TabBar({
       className={cn(
         "no-scrollbar border border-line bg-paper/85 backdrop-blur",
         docked === "none" &&
-          "w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 max-sm:w-fit max-sm:flex-col max-sm:rounded-2xl",
+          (collapseOnMobile
+            ? "w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 max-sm:w-fit max-sm:flex-col max-sm:rounded-2xl"
+            : "w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1"),
         docked === "right" && "fixed right-5 top-1/2 z-40 w-fit -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5",
         docked === "bottom" &&
           "w-fit max-w-[calc(100%-2rem)] gap-1 overflow-x-auto rounded-full p-1 fixed bottom-6 left-1/2 z-40 -translate-x-1/2",
         docked === "auto" &&
-          "fixed right-5 top-1/2 z-40 w-fit -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5 max-sm:bottom-6 max-sm:left-1/2 max-sm:right-auto max-sm:top-auto max-sm:w-[calc(100%-2rem)] max-sm:max-w-[420px] max-sm:-translate-x-1/2 max-sm:translate-y-0 max-sm:flex-row max-sm:rounded-full max-sm:p-1",
+          "fixed right-5 top-1/2 z-40 w-fit -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5 max-sm:bottom-6 max-sm:left-1/2 max-sm:right-auto max-sm:top-auto max-sm:w-[calc(100%-2rem)] max-sm:max-w-[420px] max-sm:-translate-x-1/2 max-sm:translate-y-0 max-sm:flex-row max-sm:justify-evenly max-sm:rounded-full max-sm:p-1.5",
         className,
       )}
     >
@@ -106,12 +110,16 @@ export function TabBar({
             onClick={() => select(item.id)}
             className={cn(
               "relative shrink-0 gap-2 overflow-hidden transition-colors",
-              rail
-                ? "w-full flex-row items-center gap-3 rounded-xl px-3 py-2.5"
-                : "rounded-full px-4 py-2",
-              docked === "auto" &&
-                "max-sm:w-auto max-sm:flex-1 max-sm:justify-center max-sm:rounded-full max-sm:px-2 max-sm:py-2",
-              docked === "none" && "max-sm:h-11 max-sm:w-11 max-sm:justify-center max-sm:rounded-full max-sm:p-0",
+              showLabel
+                ? cn(
+                    rail ? "w-full flex-row items-center gap-3 rounded-xl px-3 py-2.5" : "rounded-full px-4 py-2",
+                    docked === "auto" &&
+                      "max-sm:w-auto max-sm:flex-1 max-sm:justify-center max-sm:rounded-full max-sm:px-2 max-sm:py-2",
+                    docked === "none" &&
+                      collapseOnMobile &&
+                      "max-sm:h-11 max-sm:w-11 max-sm:justify-center max-sm:rounded-full max-sm:p-0",
+                  )
+                : "h-12 w-12 justify-center rounded-full p-0",
               active ? "text-ink" : "text-ink-3 hover:text-ink",
             )}
           >
@@ -123,9 +131,12 @@ export function TabBar({
                 }
                 className={cn(
                   "absolute inset-0 border border-line bg-raised",
-                  rail ? "rounded-xl" : "rounded-full",
-                  docked === "auto" && "max-sm:rounded-full",
-                  docked === "none" && "max-sm:rounded-full",
+                  showLabel
+                    ? cn(
+                        rail ? "rounded-xl" : "rounded-full",
+                        (docked === "auto" || (docked === "none" && collapseOnMobile)) && "max-sm:rounded-full",
+                      )
+                    : "rounded-full",
                 )}
               />
             )}
@@ -135,7 +146,10 @@ export function TabBar({
                 variant="small"
                 weight={active ? 600 : 500}
                 truncate
-                className={cn("relative min-w-0 flex-1 text-left text-current", docked === "none" && "max-sm:hidden")}
+                className={cn(
+                  "relative min-w-0 flex-1 text-left text-current",
+                  docked === "none" && collapseOnMobile && "max-sm:hidden",
+                )}
               >
                 {item.label}
               </AppText>

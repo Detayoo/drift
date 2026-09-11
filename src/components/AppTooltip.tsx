@@ -54,7 +54,7 @@ export function AppTooltip({
   }, [touchMode, manualOpen]);
 
   return (
-    <TooltipPrimitive.Provider delayDuration={150}>
+    <TooltipPrimitive.Provider delayDuration={50}>
       <TooltipPrimitive.Root
         open={touchMode ? manualOpen : undefined}
         onOpenChange={(next) => {

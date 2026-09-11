@@ -302,6 +302,7 @@ export function HomeScreen() {
               </AppText>
               <TabBar
                 label="Send modes"
+                collapseOnMobile={false}
                 activeId={sendMode}
                 onChange={(id) => setSendMode(id === "pickup" ? "pickup" : "direct")}
                 items={[
