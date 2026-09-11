@@ -21,16 +21,13 @@ export type TabBarLabels = "always" | "active" | "never";
 export type TabBarDocked = "none" | "bottom" | "right" | "auto";
 
 /**
- * Reusable tab capsule. Horizontal with labels on desktop, collapsing to
- * a circular-icon rail on small screens. The active pill glides between
- * tabs (shared layoutId, one per instance); taps ripple outward.
- *
- * - labels: "always" (default) shows every label, "active" only the
- *   selected tab's, "never" icons alone. The small-screen rail is always
- *   icon-only — there is no room for words there.
- * - docked: "none" flows inline; "bottom" pins a floating bar to the
- *   viewport bottom; "right" pins a rail to the viewport edge;
- *   "auto" does bottom on desktop, right rail on mobile.
+ * Reusable tab capsule. Docked "auto" hangs a vertical rail on the
+ * viewport edge on desktop and folds to a horizontal bar on small
+ * screens; "right" / "bottom" pin one form everywhere; "none" flows
+ * inline (horizontal, collapsing to an icon rail on small screens).
+ * The active pill glides between tabs (shared layoutId, one per
+ * instance); taps ripple outward. Labels follow the labels prop on
+ * roomy layouts and hide only where space forbids.
  */
 export function TabBar({
   items,
@@ -69,11 +66,13 @@ export function TabBar({
     if (next) select(next.id);
   };
 
+  const rail = docked === "right" || docked === "auto";
+
   return (
     <Box
       role="tablist"
       label={label}
-      direction="row"
+      direction={docked === "none" || docked === "bottom" ? "row" : "col"}
       align="center"
       onKeyDown={(e) => {
         if (e.key === "ArrowRight" || e.key === "ArrowDown") {
@@ -85,12 +84,14 @@ export function TabBar({
         }
       }}
       className={cn(
-        "no-scrollbar w-fit max-w-full gap-1 overflow-x-auto rounded-full border border-line bg-paper/85 p-1 backdrop-blur",
-        "max-sm:w-fit max-sm:flex-col max-sm:rounded-2xl",
-        docked === "bottom" && "fixed bottom-6 left-1/2 z-40 -translate-x-1/2",
-        docked === "right" && "fixed right-5 top-1/2 z-40 -translate-y-1/2 flex-col rounded-2xl",
+        "no-scrollbar border border-line bg-paper/85 backdrop-blur",
+        docked === "none" &&
+          "w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 max-sm:w-fit max-sm:flex-col max-sm:rounded-2xl",
+        docked === "right" && "fixed right-5 top-1/2 z-40 w-52 -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5",
+        docked === "bottom" &&
+          "w-fit max-w-[calc(100%-2rem)] gap-1 overflow-x-auto rounded-full p-1 fixed bottom-6 left-1/2 z-40 -translate-x-1/2",
         docked === "auto" &&
-          "fixed bottom-6 left-1/2 z-40 -translate-x-1/2 max-sm:bottom-auto max-sm:left-auto max-sm:right-4 max-sm:top-1/2 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:flex-col max-sm:rounded-2xl",
+          "fixed right-5 top-1/2 z-40 w-52 -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5 max-sm:bottom-6 max-sm:left-1/2 max-sm:right-auto max-sm:top-auto max-sm:w-[calc(100%-2rem)] max-sm:max-w-[420px] max-sm:-translate-x-1/2 max-sm:translate-y-0 max-sm:flex-row max-sm:rounded-full max-sm:p-1",
         className,
       )}
     >
@@ -105,8 +106,13 @@ export function TabBar({
             aria-label={item.label}
             onClick={() => select(item.id)}
             className={cn(
-              "relative shrink-0 gap-2 overflow-hidden rounded-full px-4 py-2 transition-colors",
-              "max-sm:h-11 max-sm:w-11 max-sm:justify-center max-sm:rounded-full max-sm:p-0",
+              "relative shrink-0 gap-2 overflow-hidden transition-colors",
+              rail
+                ? "w-full flex-row items-center gap-3 rounded-xl px-3 py-2.5"
+                : "rounded-full px-4 py-2",
+              docked === "auto" &&
+                "max-sm:w-auto max-sm:flex-1 max-sm:justify-center max-sm:rounded-full max-sm:px-2 max-sm:py-2",
+              docked === "none" && "max-sm:h-11 max-sm:w-11 max-sm:justify-center max-sm:rounded-full max-sm:p-0",
               active ? "text-ink" : "text-ink-3 hover:text-ink",
             )}
           >
@@ -116,12 +122,22 @@ export function TabBar({
                 transition={
                   reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 30 }
                 }
-                className="absolute inset-0 rounded-full border border-line bg-raised max-sm:rounded-full"
+                className={cn(
+                  "absolute inset-0 border border-line bg-raised",
+                  rail ? "rounded-xl" : "rounded-full",
+                  docked === "auto" && "max-sm:rounded-full",
+                  docked === "none" && "max-sm:rounded-full",
+                )}
               />
             )}
             <Icon icon={item.icon} size={18} className="relative text-current" />
             {showLabel && (
-              <AppText variant="small" weight={active ? 600 : 500} className="relative text-current max-sm:hidden">
+              <AppText
+                variant="small"
+                weight={active ? 600 : 500}
+                truncate
+                className={cn("relative min-w-0 flex-1 text-left text-current", docked === "none" && "max-sm:hidden")}
+              >
                 {item.label}
               </AppText>
             )}
