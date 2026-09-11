@@ -134,8 +134,10 @@ export function TabBar({
                   exit={{ opacity: 0, scale: 0.92 }}
                   transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
                 className={cn(
-                  "absolute inset-0 border border-line",
-                  glassActive ? "bg-glass-ink backdrop-blur-xl backdrop-saturate-150" : "bg-raised",
+                  "absolute inset-0 overflow-hidden border",
+                  glassActive
+                    ? "border-white/25 bg-glass-ink backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 dark:border-black/30 dark:backdrop-brightness-95"
+                    : "border-line bg-raised",
                   showLabel
                     ? cn(
                         rail ? "rounded-xl" : "rounded-full",
@@ -145,7 +147,20 @@ export function TabBar({
                 )}
               >
                 {glassActive && (
-                  <span aria-hidden className="absolute inset-x-3 top-[3px] h-px rounded-full bg-white/60 dark:bg-black/30" />
+                  <>
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 rounded-full bg-linear-to-br from-white/35 via-white/5 to-transparent dark:from-black/25 dark:via-black/5"
+                    />
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-4 top-0 h-5 rounded-full bg-linear-to-b from-white/50 to-transparent dark:from-black/25"
+                    />
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-4 bottom-0 h-4 rounded-full bg-linear-to-t from-black/25 to-transparent dark:from-white/20"
+                    />
+                  </>
                 )}
               </motion.span>
               )}
