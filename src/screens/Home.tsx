@@ -63,6 +63,7 @@ export function HomeScreen() {
   const transfer = useTransfer();
   const snap = transfer.snapshot;
   const transferKeyRef = useRef<string | null>(null);
+  const scrollLock = useRef<{ id: string; timer: number } | null>(null);
   const [received, setReceived] = useState<ReceivedFile[]>([]);
   const [listState, setListState] = useState<ListState>("loading");
   const commands = useSiteCommands(scrollTo);
@@ -134,17 +135,34 @@ export function HomeScreen() {
     const spy = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) setActiveSection(entry.target.id);
+          if (!entry.isIntersecting) continue;
+          const lock = scrollLock.current;
+          if (lock && entry.target.id !== lock.id) continue;
+          if (lock) {
+            window.clearTimeout(lock.timer);
+            scrollLock.current = null;
+          }
+          setActiveSection(entry.target.id);
         }
       },
       { rootMargin: "-35% 0px -55% 0px" },
     );
     targets.forEach((el) => spy.observe(el));
-    return () => spy.disconnect();
+    return () => {
+      spy.disconnect();
+      if (scrollLock.current) window.clearTimeout(scrollLock.current.timer);
+    };
   }, []);
 
   const goSection = (id: string) => {
     setActiveSection(id);
+    if (scrollLock.current) window.clearTimeout(scrollLock.current.timer);
+    scrollLock.current = {
+      id,
+      timer: window.setTimeout(() => {
+        scrollLock.current = null;
+      }, 1500),
+    };
     scrollTo(id);
   };
   const [peerDest, setPeerDest] = useState<{ address: string; name: string | null } | null>(null);
