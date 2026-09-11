@@ -241,16 +241,16 @@ html.theme-transition *::after {
   }
 }
 
-/* slow light play for glass surfaces — paper-tinted so it reads on
-   dark pills in light mode and light pills in dark mode */
+/* slow light play for glass surfaces — fixed white so it reads on
+   bright pills in light mode and dark pills in dark mode */
 .glass-swirl {
   background: conic-gradient(
     from 0deg,
     transparent 0deg,
-    color-mix(in oklab, var(--paper) 38%, transparent) 45deg,
+    rgba(255, 255, 255, 0.38) 45deg,
     transparent 105deg,
     transparent 195deg,
-    color-mix(in oklab, var(--paper) 22%, transparent) 250deg,
+    rgba(255, 255, 255, 0.22) 250deg,
     transparent 305deg
   );
   animation: ld-glass-swirl 7s linear infinite;

@@ -88,7 +88,7 @@ export function TabBar({
   const tabs = items.map((item) => {
     const active = item.id === activeId;
     const showLabel = labels === "always" || (labels === "active" && active);
-    const tone = !active ? "text-ink-3 hover:text-ink" : glassActive ? "text-paper" : "text-ink";
+        const tone = !active ? "text-ink-3 hover:text-ink" : "text-ink";
     const tab = (
       <ActionButton
         key={item.id}
@@ -121,9 +121,9 @@ export function TabBar({
               transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
               className={cn(
                 "absolute inset-0 overflow-hidden border",
-                glassActive
-                  ? "border-white/40 bg-glass-ink backdrop-blur-xl backdrop-saturate-200 backdrop-brightness-110 dark:border-black/50 dark:backdrop-brightness-95"
-                  : "border-line bg-raised",
+                  glassActive
+                    ? "border-white/60 bg-white/55 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 dark:border-white/25 dark:bg-white/15"
+                    : "border-line bg-raised",
                 showLabel
                   ? cn(
                       rail ? "rounded-xl" : "rounded-full",

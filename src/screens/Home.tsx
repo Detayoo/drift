@@ -489,9 +489,9 @@ export function HomeScreen() {
                 const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
                 window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
               }}
-              className="h-12 w-12 items-center justify-center rounded-full border border-line bg-raised text-ink transition-colors hover:bg-hover"
+              className="h-14 w-14 items-center justify-center rounded-full border border-line bg-transparent text-ink transition-colors hover:bg-hover"
             >
-              <Image src="/icon.svg" width={22} height={22} alt="" />
+              <Image src="/icon.svg" width={26} height={26} alt="" />
             </ActionButton>
           </AppTooltip>
         }
