@@ -162,7 +162,7 @@ export function HomeScreen() {
 
   return (
     <Box>
-      <SiteHeader commands={commands} />
+      <SiteHeader commands={commands} onOpenPalette={() => setPaletteOpen(true)} />
       <Main>
         <Container>
           <Box gap="md" className="pb-12 pt-16 max-md:pt-10">

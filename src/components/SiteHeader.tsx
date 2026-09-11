@@ -2,22 +2,18 @@
 
 import { IconArrowUpRight, IconCommand } from "@tabler/icons-react";
 import Image from "next/image";
-import { useState } from "react";
 import { ActionButton } from "@/components/primitives/ActionButton";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { Container, AppHeader } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
-import { CommandPalette, usePaletteHotkey, type Command } from "@/components/CommandPalette";
+import type { Command } from "@/components/CommandPalette";
 import { StatusBadge } from "@/components/Status";
 import { ThemeToggle, useTheme } from "@/components/theme";
 import { useToast } from "@/components/Toast";
 
-/** Sticky product header. Brand left, honest phase state + actions right. */
-export function SiteHeader({ commands }: { commands: Command[] }) {
-  const [paletteOpen, setPaletteOpen] = useState(false);
-  usePaletteHotkey(() => setPaletteOpen(true));
-
+/** Sticky product header. The command palette lives on the page (this bar's blur would trap a fixed overlay); the button just opens it. */
+export function SiteHeader({ commands, onOpenPalette }: { commands: Command[]; onOpenPalette: () => void }) {
   return (
     <AppHeader className="sticky top-0 z-40 border-b border-line bg-paper/90 backdrop-blur">
       <Container>
@@ -32,7 +28,7 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
           <Box direction="row" align="center" gap="sm">
             <ActionButton
               aria-label="Open command palette"
-              onClick={() => setPaletteOpen(true)}
+              onClick={onOpenPalette}
               className="h-10 gap-2 rounded-md border border-line bg-raised px-3.5 text-ink-2 transition-colors hover:bg-hover hover:text-ink"
             >
               <Icon icon={IconCommand} size={16} className="text-current" />
@@ -43,7 +39,6 @@ export function SiteHeader({ commands }: { commands: Command[] }) {
           </Box>
         </Box>
       </Container>
-      <CommandPalette open={paletteOpen} onOpenChange={setPaletteOpen} commands={commands} />
     </AppHeader>
   );
 }
