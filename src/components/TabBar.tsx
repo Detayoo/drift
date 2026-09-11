@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { AppTooltip, type TooltipSide } from "@/components/AppTooltip";
 import { ActionButton } from "@/components/primitives/ActionButton";
@@ -26,7 +27,9 @@ export type TabBarDocked = "none" | "bottom" | "right" | "auto";
  * screens; "right" / "bottom" pin one form everywhere; "none" flows
  * inline (horizontal, collapsing to an icon rail on small screens).
  * The active pill crossfades in place — it never travels through
- * neighboring tabs on its way. Taps ripple outward. Labels follow the labels prop on
+ * neighboring tabs on its way. Taps ripple outward. A trailing slot
+ * takes one standalone action (~16px past the last tab), for brand
+ * marks and overflow. Labels follow the labels prop on
  * roomy layouts and hide only where space forbids.
  */
 export function TabBar({
@@ -39,6 +42,7 @@ export function TabBar({
   collapseOnMobile = true,
   glassActive = false,
   tipSide = "top",
+  trailing,
   className,
 }: {
   items: TabBarItem[];
@@ -50,6 +54,7 @@ export function TabBar({
   collapseOnMobile?: boolean;
   glassActive?: boolean;
   tipSide?: TooltipSide;
+  trailing?: ReactNode;
   className?: string;
 }) {
   const reduceMotion = useReducedMotion();
@@ -158,7 +163,7 @@ export function TabBar({
                     />
                     <span
                       aria-hidden
-                      className="absolute inset-x-4 top-0 h-5 rounded-full bg-linear-to-b from-white/50 to-transparent dark:from-black/25"
+                      className="absolute inset-x-5 top-0 h-9 rounded-full bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.45),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.32),transparent_70%)]"
                     />
                     <span
                       aria-hidden
@@ -209,6 +214,17 @@ export function TabBar({
           </AppTooltip>
         );
       })}
+      {trailing && (
+        <Box
+          className={cn(
+            docked === "none" ? "ml-4" : "mt-4",
+            docked === "auto" && "max-sm:ml-4 max-sm:mt-0",
+            docked === "none" && collapseOnMobile && "max-sm:ml-0 max-sm:mt-4",
+          )}
+        >
+          {trailing}
+        </Box>
+      )}
     </Box>
   );
 }

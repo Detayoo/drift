@@ -1,9 +1,11 @@
 "use client";
 
 import { IconCopy, IconDevices, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconRadar, IconReload, IconSend, IconUserPlus, IconWifi } from "@tabler/icons-react";
+import Image from "next/image";
 import QRCode from "react-qr-code";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppButton } from "@/components/AppButton";
+import { AppTooltip } from "@/components/AppTooltip";
 import { CommandPalette, usePaletteHotkey } from "@/components/CommandPalette";
 import { Dialog } from "@/components/Dialog";
 import { DropZone } from "@/components/DropZone";
@@ -32,6 +34,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/components/states";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
+import { ActionButton } from "@/components/primitives/ActionButton";
 import { Icon } from "@/components/primitives/Icon";
 import { formatBytes, uploadFile, validateFile } from "@/lib/upload";
 import { useNearbyPeers } from "@/hooks/useNearbyPeers";
@@ -478,6 +481,20 @@ export function HomeScreen() {
         items={[...NAV_ITEMS]}
         activeId={activeSection}
         onChange={goSection}
+        trailing={
+          <AppTooltip content="Back to top" side="left">
+            <ActionButton
+              aria-label="Back to top"
+              onClick={() => {
+                const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+                window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+              }}
+              className="h-12 w-12 items-center justify-center rounded-full border border-line bg-raised text-ink transition-colors hover:bg-hover"
+            >
+              <Image src="/icon.svg" width={22} height={22} alt="" />
+            </ActionButton>
+          </AppTooltip>
+        }
       />
       <Dialog
         open={qrOpen}
