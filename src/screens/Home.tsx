@@ -10,6 +10,7 @@ import { DropZone } from "@/components/DropZone";
 import { IncomingOffers } from "@/components/IncomingOffers";
 import { InlineEdit } from "@/components/InlineEdit";
 import { NearbyDevices } from "@/components/NearbyDevices";
+import { NearbyRadar } from "@/components/NearbyRadar";
 import { SendToDevice } from "@/components/SendToDevice";
 import { SharePickup } from "@/components/SharePickup";
 import { TabBar } from "@/components/TabBar";
@@ -30,6 +31,7 @@ import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
 import { formatBytes, uploadFile, validateFile } from "@/lib/upload";
+import { useNearbyPeers } from "@/hooks/useNearbyPeers";
 import { formatEta, formatSpeed } from "@/lib/transfer";
 import { useTransfer } from "@/hooks/useTransfer";
 import { fetchJson } from "@/lib/http";
@@ -75,6 +77,7 @@ export function HomeScreen() {
 
   const [deviceId, setDeviceId] = useState("");
   const [deviceName, setDeviceName] = useState("");
+  const peers = useNearbyPeers(deviceId, deviceName);
   const [net, setNet] = useState<NetworkInfo | null>(null);
   const [netState, setNetState] = useState<ListState>("loading");
   const [qrOpen, setQrOpen] = useState(false);
@@ -324,14 +327,14 @@ export function HomeScreen() {
 
           {/* ── Nearby ── */}
           <Section label="Nearby devices">
-            <Box id="nearby" gap="md" className="min-h-[40dvh] scroll-mt-24 py-12">
+            <Box id="nearby" gap="md" className="scroll-mt-24 py-12">
               <AppText variant="section" headingLevel={2}>Nearby</AppText>
               <AppText variant="body" tone="secondary" className="max-w-[56ch]">
                 Machines running Drift find each other on their own. Phones join by scan — they can&apos;t announce themselves.
               </AppText>
+              <NearbyRadar peers={peers} />
               <NearbyDevices
-                deviceId={deviceId}
-                deviceName={deviceName}
+                peers={peers}
                 onSend={(peer) => {
                   setPeerDest({ address: peer.url, name: peer.name });
                   scrollTo("send");

@@ -1,58 +1,24 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { StatusDot } from "@/components/Status";
-import { fetchJson } from "@/lib/http";
-
-export type NearbyPeer = {
-  id: string;
-  name: string;
-  url: string;
-};
+import type { NearbyPeer } from "@/hooks/useNearbyPeers";
 
 /**
  * Server peers found by UDP broadcast. Browser-only phones can't beacon,
- * so they never appear here — they join by scan. Phones included, list
- * would be a lie; the copy below says so plainly.
+ * so they never appear here — they join by scan. Phones included, the
+ * list would be a lie; the section copy says so plainly.
  */
 export function NearbyDevices({
-  deviceId,
-  deviceName,
+  peers,
   onSend,
 }: {
-  deviceId: string;
-  deviceName: string;
+  peers: NearbyPeer[];
   onSend: (peer: NearbyPeer) => void;
 }) {
-  const [peers, setPeers] = useState<NearbyPeer[]>([]);
-
-  const beat = useCallback(async () => {
-    if (!deviceId) return;
-    try {
-      const body = await fetchJson<{ peers: NearbyPeer[] }>("/api/peers", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ id: deviceId, name: deviceName }),
-        timeoutMs: 8000,
-      });
-      setPeers(body.peers);
-    } catch {
-      return;
-    }
-  }, [deviceId, deviceName]);
-
-  useEffect(() => {
-    void beat();
-    const timer = window.setInterval(() => {
-      void beat();
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [beat]);
-
   return (
     <Box gap="xs" aria-live="polite" label="Nearby devices">
       <AnimatePresence initial={false}>
