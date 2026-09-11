@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { AppTooltip, type TooltipSide } from "@/components/AppTooltip";
 import { ActionButton } from "@/components/primitives/ActionButton";
@@ -25,8 +25,8 @@ export type TabBarDocked = "none" | "bottom" | "right" | "auto";
  * viewport edge on desktop and folds to a horizontal bar on small
  * screens; "right" / "bottom" pin one form everywhere; "none" flows
  * inline (horizontal, collapsing to an icon rail on small screens).
- * The active pill glides between tabs (shared layoutId, one per
- * instance); taps ripple outward. Labels follow the labels prop on
+ * The active pill crossfades in place — it never travels through
+ * neighboring tabs on its way. Taps ripple outward. Labels follow the labels prop on
  * roomy layouts and hide only where space forbids.
  */
 export function TabBar({
@@ -52,7 +52,6 @@ export function TabBar({
   tipSide?: TooltipSide;
   className?: string;
 }) {
-  const pill = useId();
   const reduceMotion = useReducedMotion();
   const hasHover = useHasHover();
   const [ripples, setRipples] = useState<Array<{ key: number; tabId: string }>>([]);
@@ -126,12 +125,14 @@ export function TabBar({
               tone,
             )}
           >
-            {active && (
-              <motion.span
-                layoutId={pill}
-                transition={
-                  reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 30 }
-                }
+            <AnimatePresence>
+              {active && (
+                <motion.span
+                  key="active-pill"
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.92 }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
                 className={cn(
                   "absolute inset-0 border border-line",
                   glassActive ? "bg-glass-ink backdrop-blur-xl backdrop-saturate-150" : "bg-raised",
@@ -147,7 +148,8 @@ export function TabBar({
                   <span aria-hidden className="absolute inset-x-3 top-[3px] h-px rounded-full bg-white/60 dark:bg-black/30" />
                 )}
               </motion.span>
-            )}
+              )}
+            </AnimatePresence>
             <Icon icon={item.icon} size={18} className="relative text-current" />
             {showLabel && (
               <AppText

@@ -21,15 +21,3 @@ npm run guard
 npm run build
 npm run bench
 ```
-
-## Layout
-
-```text
-src/app              routes, page shell, tokens in globals.css
-src/components/primitives   the only files allowed raw HTML tags
-src/components       reusable UI (buttons, dialog, toast, palette, tabs, states)
-src/screens          page screens
-src/server           protocol state (offers, pairing, trust, discovery, resume)
-src/lib              client helpers (upload engine, invite, pairing, http)
-project-doc          full spec + design system (local only, never committed)
-```
