@@ -1,4 +1,4 @@
-import type { CSSProperties, DragEventHandler, KeyboardEventHandler, MouseEventHandler, ReactNode } from "react";
+import type { CSSProperties, DragEventHandler, KeyboardEventHandler, MouseEventHandler, PointerEventHandler, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 type Pad = "none" | "xs" | "sm" | "md" | "lg" | "xl";
 type Gap = "none" | "xs" | "sm" | "md" | "lg" | "xl";
@@ -84,6 +84,7 @@ export type BoxProps = {
   onClick?: MouseEventHandler<HTMLDivElement>;
   onHover?: () => void;
   onKeyDown?: KeyboardEventHandler<HTMLDivElement>;
+  onPointerDown?: PointerEventHandler<HTMLDivElement>;
   onDragOver?: DragEventHandler<HTMLDivElement>;
   onDragLeave?: DragEventHandler<HTMLDivElement>;
   onDrop?: DragEventHandler<HTMLDivElement>;
@@ -111,6 +112,7 @@ export function Box({
   onClick,
   onHover,
   onKeyDown,
+  onPointerDown,
   onDragOver,
   onDragLeave,
   onDrop,
@@ -126,6 +128,7 @@ export function Box({
       onClick={onClick}
       onMouseEnter={onHover}
       onKeyDown={onKeyDown}
+      onPointerDown={onPointerDown}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
