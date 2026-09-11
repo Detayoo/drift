@@ -24,7 +24,7 @@ export type TextTone =
   | "info";
 
 const variantMap: Record<TextVariant, string> = {
-  display: "font-display font-semibold tracking-tight text-[clamp(2.75rem,6vw,4.5rem)] leading-[1.02]",
+  display: "font-display font-semibold tracking-tight text-[clamp(2.25rem,5vw,3.5rem)] leading-[1.05]",
   heading: "font-display font-semibold tracking-tight text-[clamp(2rem,4vw,3rem)] leading-[1.08]",
   section: "font-display font-medium tracking-tight text-[clamp(1.5rem,2.5vw,2rem)] leading-[1.15]",
   subheading: "font-sans font-medium text-[20px] leading-[1.35]",

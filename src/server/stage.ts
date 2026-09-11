@@ -9,7 +9,7 @@ export type Stage = {
   createdAt: number;
 };
 
-const STAGE_TTL = 30 * 60 * 1000;
+export const STAGE_TTL_MS = 30 * 60 * 1000;
 
 function validId(id: string): boolean {
   return /^[A-Za-z0-9-]+$/.test(id);
@@ -49,7 +49,7 @@ export async function getStage(id: string): Promise<Stage | undefined> {
   } catch {
     return undefined;
   }
-  if (!stage || stage.id !== id || Date.now() - stage.createdAt > STAGE_TTL) {
+  if (!stage || stage.id !== id || Date.now() - stage.createdAt > STAGE_TTL_MS) {
     await removeStageFiles(id, stage?.stored).catch(() => null);
     return undefined;
   }
@@ -81,7 +81,7 @@ async function sweepDisk(): Promise<void> {
       if (!name.endsWith(".json")) continue;
       try {
         const stage = JSON.parse(await fs.readFile(path.join(stageDir(), name), "utf8")) as Stage;
-        if (now - stage.createdAt > STAGE_TTL) await removeStageFiles(stage.id, stage.stored);
+        if (now - stage.createdAt > STAGE_TTL_MS) await removeStageFiles(stage.id, stage.stored);
       } catch {
         continue;
       }

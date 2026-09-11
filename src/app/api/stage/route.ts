@@ -4,7 +4,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { streamToFile } from "@/server/files";
-import { createStage, stageDir } from "@/server/stage";
+import { createStage, stageDir, STAGE_TTL_MS } from "@/server/stage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,6 +62,9 @@ export async function POST(req: NextRequest) {
     return fail(`Only ${stat.size} of ${declared} bytes arrived. Nothing was kept.`, 422);
   }
 
-  await createStage({ id, filename, size: stat.size, stored });
-  return NextResponse.json({ stageId: id, pickupPath: `/pickup/${id}` }, { status: 201 });
+  const created = await createStage({ id, filename, size: stat.size, stored });
+  return NextResponse.json(
+    { stageId: id, pickupPath: `/pickup/${id}`, expiresAt: created.createdAt + STAGE_TTL_MS },
+    { status: 201 },
+  );
 }

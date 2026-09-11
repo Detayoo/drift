@@ -7,6 +7,7 @@ import { Box } from "@/components/primitives/Box";
 import { Container, Main } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
 import { formatBytes } from "@/lib/upload";
+import { useCountdown } from "@/hooks/useCountdown";
 
 /**
  * Browser pickup: one honest download button. Navigating straight to the
@@ -16,11 +17,14 @@ export function PickupClient({
   filename,
   size,
   downloadUrl,
+  expiresAt,
 }: {
   filename: string;
   size: number;
   downloadUrl: string;
+  expiresAt: number;
 }) {
+  const countdown = useCountdown(expiresAt);
   return (
     <Main>
       <Container>
@@ -31,10 +35,16 @@ export function PickupClient({
           <AppText variant="micro" tone="faint">shared with you over local Wi-Fi</AppText>
           <AppText variant="heading" headingLevel={1} className="max-w-[20ch] break-words">{filename}</AppText>
           <AppText variant="body" tone="secondary">{formatBytes(size)} · direct from their machine, nothing in between.</AppText>
-          <AppButton label={`Download ${filename}`} size="lg" iconLeft={IconDownload} onClick={() => window.location.assign(downloadUrl)}>
-            Download
-          </AppButton>
-          <AppText variant="micro" tone="faint">Keep this tab open until it finishes.</AppText>
+          {countdown.expired ? (
+            <AppText variant="body" tone="err">This link has expired. Ask them to share a new one.</AppText>
+          ) : (
+            <Box gap="md" align="center" className="text-center">
+              <AppButton label={`Download ${filename}`} size="lg" iconLeft={IconDownload} onClick={() => window.location.assign(downloadUrl)}>
+                Download
+              </AppButton>
+              <AppText variant="micro" tone="faint">Link expires in {countdown.label} · keep this tab open until it finishes.</AppText>
+            </Box>
+          )}
         </Box>
       </Container>
     </Main>

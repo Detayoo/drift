@@ -7,6 +7,7 @@ export type UploadResult = {
   ms: number;
   stageId?: string;
   pickupPath?: string;
+  expiresAt?: number;
 };
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 ** 3;
