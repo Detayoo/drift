@@ -3,7 +3,6 @@ import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 import { Providers } from "@/components/Providers";
 import { BootProbe } from "@/components/BootProbe";
-import { ThemeScript } from "@/components/ThemeScript";
 import "./globals.css";
 
 const body = localFont({
@@ -39,7 +38,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning className="h-full antialiased">
       <body className={`${display.variable} ${body.variable} ${mono.variable} flex min-h-full flex-col`}>
-        <ThemeScript />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem("drift-theme");var d=s?s==="dark":matchMedia("(prefers-color-scheme: dark)").matches;if(d)document.documentElement.classList.add("dark")}catch(e){}})();`,
+          }}
+        />
         <BootProbe />
         <Providers>{children}</Providers>
       </body>

@@ -96,7 +96,7 @@ export function CommandPalette({
               if (e.key === "Escape") close();
             }}
             placeholder="Type a command"
-            className="h-14 border-0 bg-transparent px-0 text-[15px] focus:border-transparent"
+            className="h-14 border-0 bg-transparent px-0 text-[15px] focus:border-transparent focus-visible:outline-none"
           />
         </Box>
         <Box role="listbox" id="drift-commands" label="Commands" className="max-h-[40dvh] overflow-y-auto p-2">

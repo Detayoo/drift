@@ -30,6 +30,8 @@ export function ThemeProvider({ children }: { children?: ReactNode }) {
   }, []);
 
   const toggle = useCallback(() => {
+    document.documentElement.classList.add("theme-transition");
+    window.setTimeout(() => document.documentElement.classList.remove("theme-transition"), 350);
     setTheme((prev) => {
       const next: Theme = prev === "light" ? "dark" : "light";
       window.localStorage.setItem("drift-theme", next);

@@ -20,7 +20,9 @@ const RAW = new Set([
 
 const PRIMITIVE_RE = /src\/components\/primitives\//;
 const LAYOUT_RE = /src\/app\/layout\.tsx$/;
-const LAYOUT_ALLOW = new Set(["html", "body", "head"]);
+// "script" is allowed only for the blocking pre-paint theme setter —
+// framework-required to beat first paint; next/script cannot guarantee it.
+const LAYOUT_ALLOW = new Set(["html", "body", "head", "script"]);
 
 function files(dir) {
   return readdirSync(dir).flatMap((e) => {

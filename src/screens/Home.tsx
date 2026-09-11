@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCopy, IconFile, IconFileCheck, IconInbox, IconQrcode, IconReload, IconWifi } from "@tabler/icons-react";
+import { IconCopy, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconReload, IconSend, IconWifi } from "@tabler/icons-react";
 import QRCode from "react-qr-code";
 import { useCallback, useEffect, useState } from "react";
 import { AppButton } from "@/components/AppButton";
@@ -12,6 +12,7 @@ import { InlineEdit } from "@/components/InlineEdit";
 import { NearbyDevices } from "@/components/NearbyDevices";
 import { SendToDevice } from "@/components/SendToDevice";
 import { SharePickup } from "@/components/SharePickup";
+import { TabBar } from "@/components/TabBar";
 import { IconButton } from "@/components/IconButton";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader, useSiteCommands } from "@/components/SiteHeader";
@@ -107,6 +108,7 @@ export function HomeScreen() {
 
   const [invite, setInvite] = useState<{ address: string; name: string | null } | null>(null);
   const [peerDest, setPeerDest] = useState<{ address: string; name: string | null } | null>(null);
+  const [sendMode, setSendMode] = useState<"direct" | "pickup">("direct");
 
   useEffect(() => {
     const found = parseInvite(window.location.search);
@@ -267,20 +269,24 @@ export function HomeScreen() {
             <Box id="send" gap="md" className="scroll-mt-24 py-12">
               <AppText variant="section" headingLevel={2}>Send to another device</AppText>
               <AppText variant="body" tone="secondary" className="max-w-[56ch]">
-                Point this at Drift running on the same Wi-Fi. They accept first — nothing streams until they do.
+                Send it straight to a device that accepts, or share a link any browser can download.
               </AppText>
-              <SendToDevice deviceId={deviceId} deviceName={deviceName} prefill={peerDest ?? invite} />
-              <Box gap="sm" className="pt-4">
-                <AppText variant="small" weight={600}>Or share a pickup link</AppText>
-                <AppText variant="small" tone="secondary" className="max-w-[56ch]">
-                  For phones and browsers with nothing installed. They open your link and download — no accept step needed.
-                </AppText>
-                {net?.urls[0] ? (
-                  <SharePickup baseUrl={net.urls[0]} />
-                ) : (
-                  <AppText variant="small" tone="muted">Waiting on the network address above.</AppText>
-                )}
-              </Box>
+              <TabBar
+                label="Send modes"
+                activeId={sendMode}
+                onChange={(id) => setSendMode(id === "pickup" ? "pickup" : "direct")}
+                items={[
+                  { id: "direct", label: "Send file", icon: IconSend },
+                  { id: "pickup", label: "Share link", icon: IconLink },
+                ]}
+              />
+              {sendMode === "direct" ? (
+                <SendToDevice deviceId={deviceId} deviceName={deviceName} prefill={peerDest ?? invite} />
+              ) : net?.urls[0] ? (
+                <SharePickup baseUrl={net.urls[0]} />
+              ) : (
+                <AppText variant="small" tone="muted">Waiting on the network address above.</AppText>
+              )}
             </Box>
           </Section>
 
@@ -412,7 +418,7 @@ export function HomeScreen() {
             <AppText variant="mono" tone="secondary" className="break-all text-center">{net?.urls[0]}</AppText>
             <Box direction="row" gap="sm">
               <AppButton label="Copy invite link" className="min-w-0 flex-1" onClick={() => copyUrl(inviteLink)}>
-                Copy invite link
+                Copy invite
               </AppButton>
               <AppButton label="Copy connection address" tone="secondary" className="min-w-0 flex-1" onClick={() => net?.urls[0] && copyUrl(net.urls[0])}>
                 Copy address
