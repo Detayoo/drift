@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCopy, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconReload, IconSend, IconWifi } from "@tabler/icons-react";
+import { IconCopy, IconDevices, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconRadar, IconReload, IconSend, IconWifi } from "@tabler/icons-react";
 import QRCode from "react-qr-code";
 import { useCallback, useEffect, useState } from "react";
 import { AppButton } from "@/components/AppButton";
@@ -13,6 +13,13 @@ import { NearbyDevices } from "@/components/NearbyDevices";
 import { SendToDevice } from "@/components/SendToDevice";
 import { SharePickup } from "@/components/SharePickup";
 import { TabBar } from "@/components/TabBar";
+
+const NAV_ITEMS = [
+  { id: "send", label: "Send", icon: IconSend },
+  { id: "nearby", label: "Nearby", icon: IconRadar },
+  { id: "device", label: "Device", icon: IconDevices },
+  { id: "received", label: "Received", icon: IconInbox },
+] as const;
 import { IconButton } from "@/components/IconButton";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader, useSiteCommands } from "@/components/SiteHeader";
@@ -107,8 +114,30 @@ export function HomeScreen() {
   };
 
   const [invite, setInvite] = useState<{ address: string; name: string | null } | null>(null);
+
+  useEffect(() => {
+    const targets = NAV_ITEMS.map((item) => document.getElementById(item.id)).filter(
+      (el): el is HTMLElement => el !== null,
+    );
+    const spy = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) setActiveSection(entry.target.id);
+        }
+      },
+      { rootMargin: "-35% 0px -55% 0px" },
+    );
+    targets.forEach((el) => spy.observe(el));
+    return () => spy.disconnect();
+  }, []);
+
+  const goSection = (id: string) => {
+    setActiveSection(id);
+    scrollTo(id);
+  };
   const [peerDest, setPeerDest] = useState<{ address: string; name: string | null } | null>(null);
   const [sendMode, setSendMode] = useState<"direct" | "pickup">("direct");
+  const [activeSection, setActiveSection] = useState<string>("send");
 
   useEffect(() => {
     const found = parseInvite(window.location.search);
@@ -403,6 +432,13 @@ export function HomeScreen() {
         </Container>
       </Main>
       <SiteFooter />
+      <TabBar
+        label="Sections"
+        docked="auto"
+        items={[...NAV_ITEMS]}
+        activeId={activeSection}
+        onChange={goSection}
+      />
       <Dialog
         open={qrOpen}
         onOpenChange={setQrOpen}
