@@ -16,6 +16,7 @@ import { NearbyRadar } from "@/components/NearbyRadar";
 import { PairDialog } from "@/components/PairDialog";
 import { PairingInbox } from "@/components/PairingInbox";
 import { SendToDevice } from "@/components/SendToDevice";
+import { SectionHead } from "@/components/SectionHead";
 import { SharePickup } from "@/components/SharePickup";
 import { TabBar } from "@/components/TabBar";
 import { TrustList } from "@/components/TrustList";
@@ -336,10 +337,11 @@ export function HomeScreen() {
           {/* ── Send to another device ── */}
           <Section label="Send to another device">
             <Box id="send" gap="md" className="scroll-mt-24 py-12">
-              <AppText variant="section" headingLevel={2}>Send to another device</AppText>
-              <AppText variant="body" tone="secondary" className="max-w-[56ch]">
-                Send it straight to a device that accepts, or share a link any browser can download.
-              </AppText>
+              <SectionHead
+                index="01"
+                title="Send to another device"
+                body="Send it straight to a device that accepts, or share a link any browser can download."
+              />
               <TabBar
                 label="Send modes"
                 collapseOnMobile={false}
@@ -365,10 +367,11 @@ export function HomeScreen() {
           {/* ── Nearby ── */}
           <Section label="Nearby devices">
             <Box id="nearby" gap="md" className="scroll-mt-24 py-12">
-              <AppText variant="section" headingLevel={2}>Nearby</AppText>
-              <AppText variant="body" tone="secondary" className="max-w-[56ch]">
-                Machines running Drift find each other on their own. Phones join by scan — they can&apos;t announce themselves.
-              </AppText>
+              <SectionHead
+                index="02"
+                title="Nearby"
+                body="Machines running Drift find each other on their own. Phones join by scan. They can't announce themselves."
+              />
               <NearbyRadar peers={peers} />
               <NearbyDevices
                 peers={peers}
@@ -385,7 +388,7 @@ export function HomeScreen() {
           {/* ── This device ── */}
           <Section label="This device">
             <Box id="device" gap="md" className="scroll-mt-24 py-12">
-              <AppText variant="section" headingLevel={2}>This device</AppText>
+              <SectionHead index="03" title="This device" />
               <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg">
                 <AppText variant="micro" tone="faint">identity</AppText>
                 <InlineEdit
@@ -442,10 +445,7 @@ export function HomeScreen() {
           {/* ── Received ── */}
           <Section label="Received on this machine">
             <Box id="received" gap="md" className="scroll-mt-24 py-12">
-              <Box direction="row" align="center" gap="sm">
-                <Icon icon={IconInbox} size={20} className="text-ink-2" />
-                <AppText variant="section" headingLevel={2}>Received on this machine</AppText>
-              </Box>
+              <SectionHead index="04" title="Received on this machine" />
               {listState === "loading" && <LoadingState message="Reading the inbox" />}
               {listState === "error" && <ErrorState message="The inbox couldn't be read." onRetry={() => { setListState("loading"); void refreshReceived(); }} />}
               {listState === "ready" && received.length === 0 && (

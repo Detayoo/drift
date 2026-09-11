@@ -168,8 +168,6 @@ export function SendToDevice({
 
   return (
     <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg">
-      <AppText variant="micro" tone="faint">send to another device</AppText>
-
       {(state === "idle" || state === "declined") && (
         <Box gap="md">
           {prefill && !manual ? (
