@@ -1,7 +1,7 @@
 "use client";
 
 import QRCode from "react-qr-code";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { DropZone } from "@/components/DropZone";
 import { AppText } from "@/components/primitives/AppText";
@@ -24,12 +24,14 @@ export function SharePickup({ baseUrl }: { baseUrl: string }) {
   const { notify } = useToast();
   const transfer = useTransfer();
   const snap = transfer.snapshot;
+  const transferKeyRef = useRef<string | null>(null);
   const pickupPath = snap?.status === "done" ? (snap.result?.pickupPath ?? null) : null;
   const expiresAt = snap?.status === "done" ? (snap.result?.expiresAt ?? null) : null;
   const countdown = useCountdown(expiresAt);
 
   const reset = () => {
     transfer.reset();
+    transferKeyRef.current = null;
     setFile(null);
     setError(null);
   };
@@ -42,7 +44,17 @@ export function SharePickup({ baseUrl }: { baseUrl: string }) {
       return;
     }
     setError(null);
-    transfer.start(file, (f, p, s) => uploadFile(f, p, { path: "/api/stage", signal: s }));
+    transfer.start(file, (f, p, s) =>
+      uploadFile(f, p, {
+        path: "/api/stage",
+        signal: s,
+        probePath: "/api/stage/resume",
+        resumeKey: transferKeyRef.current ?? undefined,
+        onResumeKey: (id) => {
+          transferKeyRef.current = id;
+        },
+      }),
+    );
   };
 
   const remove = async () => {
@@ -104,7 +116,7 @@ export function SharePickup({ baseUrl }: { baseUrl: string }) {
           <AppText variant="small">{snap?.error ?? "Staging failed."}</AppText>
           <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
             <AppButton label="Try again" size="sm" onClick={() => transfer.retry()}>
-              Try again
+              {snap && snap.sent > 0 ? "Resume" : "Try again"}
             </AppButton>
             <AppButton label="Start over" tone="secondary" size="sm" onClick={reset}>
               Start over

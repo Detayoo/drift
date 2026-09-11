@@ -10,6 +10,7 @@ export async function streamToFile(
   source: Readable,
   dest: string,
   onBytes?: (received: number) => void,
+  opts?: { append?: boolean },
 ): Promise<number> {
   let received = 0;
   const tap = new PassThrough();
@@ -17,6 +18,6 @@ export async function streamToFile(
     received += chunk.length;
     onBytes?.(received);
   });
-  await pipeline(source, tap, createWriteStream(dest));
+  await pipeline(source, tap, createWriteStream(dest, { flags: opts?.append ? "a" : "w" }));
   return received;
 }

@@ -1,7 +1,8 @@
 import { createReadStream, promises as fs } from "node:fs";
+import path from "node:path";
 import { NextResponse } from "next/server";
 import { Readable } from "node:stream";
-import { getStage, stageFilePath } from "@/server/stage";
+import { getStage, stageDir } from "@/server/stage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const { id } = await params;
   const stage = await getStage(id);
   if (!stage) return NextResponse.json({ error: "That pickup expired or never existed." }, { status: 404 });
-  const full = stageFilePath(stage.stored);
+  const full = path.join(stageDir(), stage.stored);
   try {
     await fs.access(full);
   } catch {

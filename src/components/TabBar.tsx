@@ -37,6 +37,7 @@ export function TabBar({
   labels = "always",
   docked = "none",
   collapseOnMobile = true,
+  glassActive = false,
   tipSide = "top",
   className,
 }: {
@@ -47,6 +48,7 @@ export function TabBar({
   labels?: TabBarLabels;
   docked?: TabBarDocked;
   collapseOnMobile?: boolean;
+  glassActive?: boolean;
   tipSide?: TooltipSide;
   className?: string;
 }) {
@@ -130,7 +132,8 @@ export function TabBar({
                   reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 350, damping: 30 }
                 }
                 className={cn(
-                  "absolute inset-0 border border-line bg-raised",
+                  "absolute inset-0 border border-line",
+                  glassActive ? "bg-raised/70 backdrop-blur-md backdrop-saturate-150" : "bg-raised",
                   showLabel
                     ? cn(
                         rail ? "rounded-xl" : "rounded-full",
@@ -138,7 +141,11 @@ export function TabBar({
                       )
                     : "rounded-full",
                 )}
-              />
+              >
+                {glassActive && (
+                  <span aria-hidden className="absolute inset-x-3 top-[3px] h-px rounded-full bg-white/50 dark:bg-white/25" />
+                )}
+              </motion.span>
             )}
             <Icon icon={item.icon} size={18} className="relative text-current" />
             {showLabel && (

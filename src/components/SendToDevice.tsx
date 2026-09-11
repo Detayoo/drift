@@ -117,7 +117,15 @@ export function SendToDevice({
         if (offer.state === "accepted" && offer.grant) {
           stopPoll();
           setState("sending");
-          transfer.start(file, (f, p, s) => uploadFile(f, p, { baseUrl: base, grant: offer.grant, signal: s }));
+          transfer.start(file, (f, p, s) =>
+            uploadFile(f, p, {
+              baseUrl: base,
+              grant: offer.grant,
+              signal: s,
+              probePath: "/api/transfers/resume",
+              resumeKey: offerId,
+            }),
+          );
         } else if (offer.state === "rejected") {
           stopPoll();
           setState("declined");
@@ -240,7 +248,7 @@ export function SendToDevice({
           <AppText variant="small" tone="secondary">{snap?.error ?? error ?? "Couldn't send it."}</AppText>
           <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
             <AppButton label="Try again" onClick={() => { if (snap) transfer.retry(); else void send(); }}>
-              Try again
+              {snap && snap.sent > 0 ? "Resume" : "Try again"}
             </AppButton>
             <AppButton label="Start over" tone="secondary" onClick={reset}>
               Start over

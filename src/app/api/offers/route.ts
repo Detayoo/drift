@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import path from "node:path";
 import { createOffer, listActive } from "@/server/offers";
+import { safeName } from "@/server/resumable";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,11 +9,6 @@ const MAX_BYTES = 5 * 1024 ** 3;
 
 function fail(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
-}
-
-function safeName(raw: string): string {
-  const base = path.basename(raw).replace(/[^\w.\-()[\] ]/g, "_").slice(0, 180);
-  return base || "file";
 }
 
 /** Pending + live incoming offers for this device. Polled by the receiver UI. */

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { STAGE_TTL_MS, getStage } from "@/server/stage";
+import { getStage } from "@/server/stage";
 import { PickupClient } from "./PickupClient";
 
 export const dynamic = "force-dynamic";
@@ -13,5 +13,5 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function PickupPage({ params }: { params: Promise<{ id: string }> }) {
   const stage = await getStage((await params).id);
   if (!stage) notFound();
-  return <PickupClient filename={stage.filename} size={stage.size} downloadUrl={`/api/stage/${stage.id}/file`} expiresAt={stage.createdAt + STAGE_TTL_MS} />;
+  return <PickupClient filename={stage.filename} size={stage.size} downloadUrl={`/api/stage/${stage.id}/file`} expiresAt={stage.expiresAt} />;
 }

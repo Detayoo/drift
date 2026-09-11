@@ -2,7 +2,7 @@
 
 import { IconCopy, IconDevices, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconRadar, IconReload, IconSend, IconWifi } from "@tabler/icons-react";
 import QRCode from "react-qr-code";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { CommandPalette, usePaletteHotkey } from "@/components/CommandPalette";
 import { Dialog } from "@/components/Dialog";
@@ -56,6 +56,7 @@ export function HomeScreen() {
   const [formError, setFormError] = useState<string | null>(null);
   const transfer = useTransfer();
   const snap = transfer.snapshot;
+  const transferKeyRef = useRef<string | null>(null);
   const [received, setReceived] = useState<ReceivedFile[]>([]);
   const [listState, setListState] = useState<ListState>("loading");
   const commands = useSiteCommands(scrollTo);
@@ -169,11 +170,21 @@ export function HomeScreen() {
 
   const send = useCallback(() => {
     if (!file) return;
-    transfer.start(file, (f, p, s) => uploadFile(f, p, { signal: s }));
+    transfer.start(file, (f, p, s) =>
+      uploadFile(f, p, {
+        signal: s,
+        probePath: "/api/transfers/resume",
+        resumeKey: transferKeyRef.current ?? undefined,
+        onResumeKey: (id) => {
+          transferKeyRef.current = id;
+        },
+      }),
+    );
   }, [file, transfer]);
 
   const reset = useCallback(() => {
     transfer.reset();
+    transferKeyRef.current = null;
     setFile(null);
     setFormError(null);
     setStatus("idle");
@@ -283,7 +294,7 @@ export function HomeScreen() {
                 <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
                   {snap && (
                     <AppButton label="Retry upload" onClick={() => transfer.retry()}>
-                      Try again
+                      {snap.sent > 0 ? "Resume" : "Try again"}
                     </AppButton>
                   )}
                   <AppButton label="Choose a different file" tone="secondary" onClick={reset}>
@@ -306,6 +317,7 @@ export function HomeScreen() {
               <TabBar
                 label="Send modes"
                 collapseOnMobile={false}
+                glassActive
                 activeId={sendMode}
                 onChange={(id) => setSendMode(id === "pickup" ? "pickup" : "direct")}
                 items={[
@@ -441,6 +453,7 @@ export function HomeScreen() {
         docked="auto"
         labels="never"
         tipSide="left"
+        glassActive
         items={[...NAV_ITEMS]}
         activeId={activeSection}
         onChange={goSection}

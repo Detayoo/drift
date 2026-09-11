@@ -33,6 +33,8 @@ for (const mb of SIZES_MB) {
       "content-type": "application/octet-stream",
       "x-drift-filename": `bench-${mb}mb.bin`,
       "x-drift-size": String(size),
+      "x-drift-transfer": `bench-${mb}mb`,
+      "x-drift-offset": "0",
     },
     body: randomStream(size),
     duplex: "half",

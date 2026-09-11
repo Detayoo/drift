@@ -1,10 +1,11 @@
-import { isNetworkFailure, readError } from "@/lib/http";
+import { fetchJson, isNetworkFailure, readError } from "@/lib/http";
 
 export type UploadResult = {
   id: string;
   filename: string;
   bytes: number;
   ms: number;
+  sha256?: string;
   stageId?: string;
   pickupPath?: string;
   expiresAt?: number;
@@ -54,10 +55,12 @@ export function supportsStreamingUpload(): boolean {
   return streamingCache;
 }
 
+type Headers = Record<string, string>;
+
 function uploadStreamed(
   file: File,
   target: string,
-  headers: Record<string, string>,
+  headers: Headers,
   onProgress: (sent: number) => void,
   signal?: AbortSignal,
 ): Promise<UploadResult> {
@@ -80,13 +83,15 @@ function uploadStreamed(
 }
 
 /**
- * Fallback for engines without upload streaming. The File goes as one
- * body (the browser streams it off disk) with real progress events.
+ * Fallback for engines without upload streaming. The File (or its slice)
+ * goes as one body with real progress events. The offset shifts progress
+ * so bars always show total bytes, never just this attempt's.
  */
 function uploadXhr(
-  file: File,
+  body: Blob,
   target: string,
-  headers: Record<string, string>,
+  headers: Headers,
+  offset: number,
   onProgress: (sent: number) => void,
   signal?: AbortSignal,
 ): Promise<UploadResult> {
@@ -100,21 +105,28 @@ function uploadXhr(
     for (const [key, value] of Object.entries(headers)) xhr.setRequestHeader(key, value);
     signal?.addEventListener("abort", () => xhr.abort(), { once: true });
     xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) onProgress(e.loaded);
+      if (e.lengthComputable) onProgress(offset + e.loaded);
     };
     xhr.onload = () => {
-      let body: { error?: string } | null = null;
+      let parsed: UploadResult | { error?: string } | null = null;
       try {
-        body = JSON.parse(xhr.responseText) as { error?: string };
+        parsed = JSON.parse(xhr.responseText) as UploadResult;
       } catch {
-        body = null;
+        parsed = null;
       }
-      if (xhr.status >= 200 && xhr.status < 300) resolve(body as UploadResult);
-      else reject(new Error(body?.error ?? `Upload failed (HTTP ${xhr.status}).`));
+      if (xhr.status >= 200 && xhr.status < 300 && parsed && !("error" in parsed)) {
+        resolve(parsed);
+      } else {
+        const message =
+          parsed && typeof parsed === "object" && "error" in parsed && typeof parsed.error === "string"
+            ? parsed.error
+            : `Upload failed (HTTP ${xhr.status}).`;
+        reject(new Error(message));
+      }
     };
     xhr.onerror = () => reject(new TypeError("Failed to fetch"));
     xhr.onabort = () => reject(new DOMException("Aborted", "AbortError"));
-    xhr.send(file);
+    xhr.send(body);
   });
 }
 
@@ -124,37 +136,98 @@ async function finishUpload(res: Promise<Response>): Promise<UploadResult> {
   return (await done.json()) as UploadResult;
 }
 
+export type ResumeProbe = {
+  received: number;
+  complete: {
+    filename: string;
+    bytes: number;
+    sha256?: string;
+    pickupPath?: string;
+    expiresAt?: number;
+  } | null;
+};
+
 /**
- * Uploads a file as raw binary. Streaming engines count exact bytes as
- * they leave; the rest fall back to XHR progress. Memory stays flat
- * either way — the file is never buffered in JavaScript.
+ * Uploads a file as raw binary with resume. The stable key (offer id or
+ * client uuid) addresses a server-side checkpoint: the probe reports kept
+ * bytes, the remainder streams after them, and a lost acknowledgement
+ * returns the completed receipt without re-sending a single byte.
+ * Memory stays flat on both transports — the file is never buffered.
  */
 export async function uploadFile(
   file: File,
   onProgress: (sent: number) => void,
-  opts?: { baseUrl?: string; path?: string; grant?: string; signal?: AbortSignal },
+  opts?: {
+    baseUrl?: string;
+    path?: string;
+    probePath?: string;
+    grant?: string;
+    signal?: AbortSignal;
+    resumeKey?: string;
+    onResumeKey?: (key: string) => void;
+  },
 ): Promise<UploadResult> {
   const base = (opts?.baseUrl ?? "").replace(/\/+$/, "");
   const target = `${base}${opts?.path ?? "/api/transfers"}`;
-  const headers: Record<string, string> = {
+  const key = opts?.resumeKey ?? crypto.randomUUID().slice(0, 8);
+  opts?.onResumeKey?.(key);
+
+  let offset = 0;
+  if (opts?.probePath) {
+    try {
+      const probe = await fetchJson<ResumeProbe>(`${base}${opts.probePath}?transferId=${encodeURIComponent(key)}`);
+      if (probe.complete && probe.complete.bytes === file.size) {
+        onProgress(file.size);
+        return {
+          id: key,
+          filename: probe.complete.filename,
+          bytes: probe.complete.bytes,
+          ms: 0,
+          sha256: probe.complete.sha256,
+          pickupPath: probe.complete.pickupPath,
+          expiresAt: probe.complete.expiresAt,
+        };
+      }
+      offset = Math.min(Math.max(0, probe.received), file.size);
+    } catch {
+      offset = 0;
+    }
+  }
+
+  const headers: Headers = {
     "content-type": "application/octet-stream",
     "x-drift-filename": encodeURIComponent(file.name),
     "x-drift-size": String(file.size),
     "x-drift-type": file.type || "application/octet-stream",
+    "x-drift-transfer": key,
+    "x-drift-offset": String(offset),
     ...(opts?.grant ? { "x-drift-grant": opts.grant } : {}),
   };
+  const shifted = (n: number) => onProgress(offset + n);
 
   if (!supportsStreamingUpload()) {
-    return uploadXhr(file, target, headers, onProgress, opts?.signal);
+    return uploadXhr(offset > 0 ? file.slice(offset) : file, target, headers, offset, shifted, opts?.signal);
   }
-  let sent = 0;
+  let streamed = 0;
   try {
-    return await uploadStreamed(file, target, headers, (n) => {
-      sent = n;
-      onProgress(n);
-    }, opts?.signal);
+    const source = offset > 0 ? file.slice(offset) : file;
+    const counter = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        streamed += chunk.byteLength;
+        shifted(streamed);
+        controller.enqueue(chunk);
+      },
+    });
+    const init: RequestInit & { duplex: "half" } = {
+      method: "POST",
+      headers,
+      body: source.stream().pipeThrough(counter),
+      duplex: "half",
+      signal: opts?.signal,
+    };
+    return await finishUpload(fetch(target, init));
   } catch (err) {
-    if (sent > 0 || !isNetworkFailure(err)) throw err;
-    return uploadXhr(file, target, headers, onProgress, opts?.signal);
+    if (streamed > 0 || !isNetworkFailure(err)) throw err;
+    return uploadXhr(offset > 0 ? file.slice(offset) : file, target, headers, offset, shifted, opts?.signal);
   }
 }
