@@ -104,7 +104,7 @@ export function SharePickup({ baseUrl }: { baseUrl: string }) {
             {formatBytes(snap?.sent ?? 0)} / {formatBytes(file.size)} · {pct}% · {pace}
           </AppText>
           <Box radius="full" tint="sunken" className="h-1.5 w-full overflow-hidden">
-            <Box radius="full" tint="accent" className="h-full transition-[width]" style={{ width: `${pct}%` }} />
+            <Box radius="full" tint="accent" className="h-full transition-[width] duration-200 ease-out" style={{ width: `${pct}%` }} />
           </Box>
           <AppButton label="Cancel staging" tone="ghost" size="sm" onClick={() => { transfer.cancel(); reset(); }}>
             Cancel

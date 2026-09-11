@@ -1,5 +1,6 @@
 "use client";
 
+import { MotionConfig } from "motion/react";
 import { useEffect } from "react";
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme";
@@ -12,8 +13,10 @@ export function Providers({ children }: { children?: ReactNode }) {
     document.getElementById("drift-boot-error")?.style.setProperty("display", "none");
   }, []);
   return (
-    <ThemeProvider>
-      <ToastProvider>{children}</ToastProvider>
-    </ThemeProvider>
+    <MotionConfig reducedMotion="user">
+      <ThemeProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </ThemeProvider>
+    </MotionConfig>
   );
 }

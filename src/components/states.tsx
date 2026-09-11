@@ -1,5 +1,7 @@
 import { IconExclamationCircle, IconFolderOff, IconLoader2 } from "@tabler/icons-react";
+import { motion } from "motion/react";
 import type { ReactNode } from "react";
+import { MOTION } from "@/lib/motion";
 import { AppButton } from "@/components/AppButton";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
@@ -17,16 +19,18 @@ function StateShell({
   children?: ReactNode;
 }) {
   return (
-    <Box align="center" justify="center" gap="md" className="mx-auto w-full max-w-[420px] px-6 py-16 text-center">
-      {icon}
-      {heading ? (
-        <AppText variant="section" headingLevel={2}>{heading}</AppText>
-      ) : null}
-      {message ? (
-        <AppText variant="small" tone="secondary">{message}</AppText>
-      ) : null}
-      {children}
-    </Box>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={MOTION.micro}>
+      <Box align="center" justify="center" gap="md" className="mx-auto w-full max-w-[420px] px-6 py-16 text-center">
+        {icon}
+        {heading ? (
+          <AppText variant="section" headingLevel={2}>{heading}</AppText>
+        ) : null}
+        {message ? (
+          <AppText variant="small" tone="secondary">{message}</AppText>
+        ) : null}
+        {children}
+      </Box>
+    </motion.div>
   );
 }
 

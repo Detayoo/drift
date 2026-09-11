@@ -288,7 +288,7 @@ export function HomeScreen() {
                   </Box>
                 </Box>
                 <Box radius="full" tint="sunken" className="h-1.5 w-full overflow-hidden">
-                  <Box radius="full" tint="accent" className="h-full transition-[width]" style={{ width: `${pct}%` }} />
+                  <Box radius="full" tint="accent" className="h-full transition-[width] duration-200 ease-out" style={{ width: `${pct}%` }} />
                 </Box>
                 <AppButton label="Cancel upload" tone="ghost" size="sm" onClick={() => { transfer.cancel(); reset(); }}>
                   Cancel
