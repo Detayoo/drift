@@ -9,6 +9,7 @@ import { TextField } from "@/components/fields";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { formatBytes, uploadFile, validateFile } from "@/lib/upload";
+import { newNonce, offerAuth, pairedForOrigin } from "@/lib/pairing";
 import { formatEta, formatSpeed } from "@/lib/transfer";
 import { useTransfer } from "@/hooks/useTransfer";
 import { fetchJson, isNetworkFailure } from "@/lib/http";
@@ -91,11 +92,20 @@ export function SendToDevice({
     setError(null);
     let offerId: string;
     try {
+      const pairing = pairedForOrigin(base);
+      const nonce = pairing ? newNonce() : undefined;
+      const auth = pairing ? offerAuth(pairing.secret, nonce as string, encodeURIComponent(file.name), file.size) : undefined;
       offerId = (
         await fetchJson<{ id: string }>(`${base}/api/offers`, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ filename: file.name, size: file.size, fromId: deviceId, fromName: deviceName }),
+          body: JSON.stringify({
+            filename: file.name,
+            size: file.size,
+            fromId: deviceId,
+            fromName: deviceName,
+            ...(nonce && auth ? { nonce, auth } : {}),
+          }),
         })
       ).id;
     } catch (err) {

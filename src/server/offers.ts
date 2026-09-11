@@ -17,6 +17,7 @@ export type Offer = {
   fromName: string;
   state: OfferState;
   grant: string | null;
+  verified: boolean;
   received: number;
   total: number;
   createdAt: number;
@@ -40,11 +41,18 @@ function sweep(now: number) {
   }
 }
 
-export function createOffer(input: { filename: string; size: number; fromId: string; fromName: string }): Offer {
+export function createOffer(input: {
+  filename: string;
+  size: number;
+  fromId: string;
+  fromName: string;
+  verified?: boolean;
+}): Offer {
   sweep(Date.now());
   const offer: Offer = {
     id: randomUUID().slice(0, 8),
     grant: null,
+    verified: input.verified ?? false,
     received: 0,
     total: input.size,
     state: "pending",

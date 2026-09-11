@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppButton } from "@/components/AppButton";
 import { Dialog } from "@/components/Dialog";
+import { StatusBadge } from "@/components/Status";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { formatBytes } from "@/lib/upload";
@@ -16,6 +17,7 @@ type IncomingOffer = {
   fromId: string;
   fromName: string;
   state: string;
+  verified: boolean;
   received: number;
   total: number;
 };
@@ -89,7 +91,10 @@ export function IncomingOffers({ onReceived }: { onReceived: () => void }) {
         const pct = offer.total > 0 ? Math.min(100, Math.round((offer.received / offer.total) * 100)) : 0;
         return (
           <Box key={offer.id} gap="sm" bordered border="line" radius="lg" tint="raised" pad="lg" role="status" label={`Receiving ${offer.filename}`}>
-            <AppText variant="small" weight={600} truncate>Receiving {offer.filename}</AppText>
+            <Box direction="row" align="center" gap="sm">
+              <AppText variant="small" weight={600} truncate className="min-w-0 flex-1">Receiving {offer.filename}</AppText>
+              {offer.verified && <StatusBadge tone="ok">Verified</StatusBadge>}
+            </Box>
             <AppText variant="mono" tone="secondary" aria-live="polite">
               {formatBytes(offer.received)} / {formatBytes(offer.total)} · {pct}%
             </AppText>

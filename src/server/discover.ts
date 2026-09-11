@@ -13,6 +13,7 @@ const PEER_TTL = 10000;
 
 let socket: dgram.Socket | null = null;
 let self = { id: "", name: "", httpPort: "3000" };
+let selfIdentity: { id: string; name: string } | null = null;
 const peers = new Map<string, Peer>();
 
 function sweep(now: number) {
@@ -28,6 +29,7 @@ function sweep(now: number) {
  */
 export function registerDevice(identity: { id: string; name: string; httpPort: string }): Peer[] {
   self = { ...identity, name: identity.name.slice(0, 40) };
+  if (self.id) selfIdentity = { id: self.id, name: self.name };
 
   if (!socket) {
     socket = dgram.createSocket({ type: "udp4", reuseAddr: true });
@@ -65,4 +67,9 @@ export function registerDevice(identity: { id: string; name: string; httpPort: s
 
   sweep(Date.now());
   return [...peers.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** This server's device identity, as last reported by its browser. */
+export function getSelfIdentity(): { id: string; name: string } | null {
+  return selfIdentity;
 }

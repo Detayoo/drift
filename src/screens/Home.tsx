@@ -1,6 +1,6 @@
 "use client";
 
-import { IconCopy, IconDevices, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconRadar, IconReload, IconSend, IconWifi } from "@tabler/icons-react";
+import { IconCopy, IconDevices, IconFile, IconFileCheck, IconInbox, IconLink, IconQrcode, IconRadar, IconReload, IconSend, IconUserPlus, IconWifi } from "@tabler/icons-react";
 import QRCode from "react-qr-code";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AppButton } from "@/components/AppButton";
@@ -11,9 +11,12 @@ import { IncomingOffers } from "@/components/IncomingOffers";
 import { InlineEdit } from "@/components/InlineEdit";
 import { NearbyDevices } from "@/components/NearbyDevices";
 import { NearbyRadar } from "@/components/NearbyRadar";
+import { PairDialog } from "@/components/PairDialog";
+import { PairingInbox } from "@/components/PairingInbox";
 import { SendToDevice } from "@/components/SendToDevice";
 import { SharePickup } from "@/components/SharePickup";
 import { TabBar } from "@/components/TabBar";
+import { TrustList } from "@/components/TrustList";
 
 const NAV_ITEMS = [
   { id: "send", label: "Send", icon: IconSend },
@@ -82,6 +85,8 @@ export function HomeScreen() {
   const [net, setNet] = useState<NetworkInfo | null>(null);
   const [netState, setNetState] = useState<ListState>("loading");
   const [qrOpen, setQrOpen] = useState(false);
+  const [pairOpen, setPairOpen] = useState(false);
+  const [trustBump, setTrustBump] = useState(0);
   const { notify } = useToast();
 
   const loadNet = useCallback(async () => {
@@ -400,6 +405,14 @@ export function HomeScreen() {
                     Try again
                   </AppButton>
                 )}
+                <Divider />
+                <Box gap="xs">
+                  <AppText variant="micro" tone="faint">paired devices</AppText>
+                  <TrustList refreshKey={trustBump} onChanged={() => setTrustBump((b) => b + 1)} />
+                  <AppButton label="Pair a device" tone="secondary" iconLeft={IconUserPlus} onClick={() => setPairOpen(true)}>
+                    Pair a device
+                  </AppButton>
+                </Box>
               </Box>
             </Box>
           </Section>
@@ -448,6 +461,14 @@ export function HomeScreen() {
         </Container>
       </Main>
       <SiteFooter />
+      <PairDialog
+        open={pairOpen}
+        onOpenChange={setPairOpen}
+        deviceId={deviceId}
+        deviceName={deviceName}
+        onPaired={() => setTrustBump((b) => b + 1)}
+      />
+      <PairingInbox />
       <TabBar
         label="Sections"
         docked="auto"
