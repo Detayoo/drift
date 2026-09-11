@@ -325,7 +325,6 @@ export function HomeScreen() {
               <TabBar
                 label="Send modes"
                 collapseOnMobile={false}
-                glassActive
                 activeId={sendMode}
                 onChange={(id) => setSendMode(id === "pickup" ? "pickup" : "direct")}
                 items={[

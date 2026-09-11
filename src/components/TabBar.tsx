@@ -26,8 +26,10 @@ export type TabBarDocked = "none" | "bottom" | "right" | "auto";
  * viewport edge on desktop and folds to a horizontal bar on small
  * screens; "right" / "bottom" pin one form everywhere; "none" flows
  * inline (horizontal, collapsing to an icon rail on small screens).
- * The active pill crossfades in place — it never travels through
- * neighboring tabs on its way. Taps ripple outward. A trailing slot
+ * With glassActive the active pill is a whisper-quiet wash (dark 6%
+ * over light bars, white 10% over dark ones) — Duo toolbar language,
+ * not a disc. The pill crossfades in place, never traveling through
+ * neighbors. Taps ripple outward. A trailing slot
  * floats one standalone action ~16px past the capsule, outside its
  * border. Labels follow the labels prop on roomy layouts and hide
  * only where space forbids.
@@ -119,11 +121,9 @@ export function TabBar({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={reduceMotion ? { duration: 0 } : { duration: 0.18, ease: "easeOut" }}
-              className={cn(
-                "absolute inset-0 overflow-hidden border",
-                  glassActive
-                    ? "border-white/60 bg-white/55 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 dark:border-white/40 dark:bg-white/25"
-                    : "border-line bg-raised",
+                className={cn(
+                  "absolute inset-0 overflow-hidden",
+                  glassActive ? "bg-black/[0.06] dark:bg-white/10" : "border border-line bg-raised",
                 showLabel
                   ? cn(
                       rail ? "rounded-xl" : "rounded-full",
@@ -131,26 +131,9 @@ export function TabBar({
                     )
                   : "rounded-full",
               )}
-            >
-                {glassActive && (
-                  <>
-                    <span
-                      aria-hidden
-                      className="absolute inset-0 rounded-full bg-linear-to-br from-white/30 via-white/5 to-transparent dark:from-white/20 dark:via-white/5"
-                    />
-                    <span
-                      aria-hidden
-                      className="absolute inset-x-6 top-0 h-6 rounded-full bg-linear-to-b from-white/60 to-transparent dark:from-white/30"
-                    />
-                    <span
-                      aria-hidden
-                      className="absolute inset-x-6 bottom-0 h-4 rounded-full bg-linear-to-t from-black/20 to-transparent dark:from-white/15"
-                    />
-                  </>
-                )}
-            </motion.span>
-          </AnimatePresence>
-        )}
+            />
+            </AnimatePresence>
+          )}
         <Icon icon={item.icon} size={18} className="relative text-current" />
         {showLabel && (
           <AppText
