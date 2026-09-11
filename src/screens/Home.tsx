@@ -435,6 +435,8 @@ export function HomeScreen() {
       <TabBar
         label="Sections"
         docked="auto"
+        labels="never"
+        tipSide="left"
         items={[...NAV_ITEMS]}
         activeId={activeSection}
         onChange={goSection}

@@ -52,6 +52,7 @@ export function TabBar({
   const reduceMotion = useReducedMotion();
   const hasHover = useHasHover();
   const [ripples, setRipples] = useState<Array<{ key: number; tabId: string }>>([]);
+  const rail = docked === "right" || docked === "auto";
 
   const select = (id: string) => {
     onChange(id);
@@ -65,8 +66,6 @@ export function TabBar({
     const next = items[(index + direction + items.length) % items.length];
     if (next) select(next.id);
   };
-
-  const rail = docked === "right" || docked === "auto";
 
   return (
     <Box
