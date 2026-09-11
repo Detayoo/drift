@@ -136,7 +136,7 @@ export function TabBar({
                 className={cn(
                   "absolute inset-0 overflow-hidden border",
                   glassActive
-                    ? "border-white/25 bg-glass-ink backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 dark:border-black/30 dark:backdrop-brightness-95"
+                    ? "border-white/40 bg-glass-ink backdrop-blur-xl backdrop-saturate-200 backdrop-brightness-110 dark:border-black/50 dark:backdrop-brightness-95"
                     : "border-line bg-raised",
                   showLabel
                     ? cn(
@@ -148,6 +148,10 @@ export function TabBar({
               >
                 {glassActive && (
                   <>
+                    <span
+                      aria-hidden
+                      className="glass-swirl absolute -inset-[45%] rounded-full"
+                    />
                     <span
                       aria-hidden
                       className="absolute inset-0 rounded-full bg-linear-to-br from-white/35 via-white/5 to-transparent dark:from-black/25 dark:via-black/5"
