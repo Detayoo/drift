@@ -410,11 +410,11 @@ export function HomeScreen() {
               <QRCode value={inviteLink} size={220} bgColor="#FFFFFF" fgColor="#161616" />
             </Box>
             <AppText variant="mono" tone="secondary" className="break-all text-center">{net?.urls[0]}</AppText>
-            <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
-              <AppButton label="Copy invite link" onClick={() => copyUrl(inviteLink)}>
+            <Box direction="row" gap="sm">
+              <AppButton label="Copy invite link" className="min-w-0 flex-1" onClick={() => copyUrl(inviteLink)}>
                 Copy invite link
               </AppButton>
-              <AppButton label="Copy connection address" tone="secondary" onClick={() => net?.urls[0] && copyUrl(net.urls[0])}>
+              <AppButton label="Copy connection address" tone="secondary" className="min-w-0 flex-1" onClick={() => net?.urls[0] && copyUrl(net.urls[0])}>
                 Copy address
               </AppButton>
             </Box>
