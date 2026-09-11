@@ -95,7 +95,7 @@ export function TabBar({
         docked === "bottom" &&
           "w-fit max-w-[calc(100%-2rem)] gap-1 overflow-x-auto rounded-full p-1 fixed bottom-6 left-1/2 z-40 -translate-x-1/2",
         docked === "auto" &&
-          "fixed right-5 top-1/2 z-40 w-fit -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5 max-sm:bottom-6 max-sm:left-1/2 max-sm:right-auto max-sm:top-auto max-sm:w-[calc(100%-2rem)] max-sm:max-w-[420px] max-sm:-translate-x-1/2 max-sm:translate-y-0 max-sm:flex-row max-sm:justify-evenly max-sm:rounded-full max-sm:p-1.5",
+          "fixed right-5 top-1/2 z-40 w-fit -translate-y-1/2 flex-col gap-1 rounded-2xl p-1.5 max-sm:bottom-6 max-sm:left-1/2 max-sm:right-auto max-sm:top-auto max-sm:w-fit max-sm:max-w-[calc(100%-2rem)] max-sm:-translate-x-1/2 max-sm:translate-y-0 max-sm:flex-row max-sm:justify-evenly max-sm:rounded-full max-sm:p-1.5",
         className,
       )}
     >
