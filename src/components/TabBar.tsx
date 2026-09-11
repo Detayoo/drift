@@ -87,7 +87,7 @@ export function TabBar({
         }
       }}
       className={cn(
-        "no-scrollbar border border-line bg-paper/85 backdrop-blur",
+        "no-scrollbar border border-line bg-glass-paper backdrop-blur",
         docked === "none" &&
           (collapseOnMobile
             ? "w-fit max-w-full gap-1 overflow-x-auto rounded-full p-1 max-sm:w-fit max-sm:flex-col max-sm:rounded-2xl"
@@ -134,7 +134,7 @@ export function TabBar({
                 }
                 className={cn(
                   "absolute inset-0 border border-line",
-                  glassActive ? "bg-ink/85 backdrop-blur-xl backdrop-saturate-150" : "bg-raised",
+                  glassActive ? "bg-glass-ink backdrop-blur-xl backdrop-saturate-150" : "bg-raised",
                   showLabel
                     ? cn(
                         rail ? "rounded-xl" : "rounded-full",

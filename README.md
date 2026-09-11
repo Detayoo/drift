@@ -33,10 +33,3 @@ src/server           protocol state (offers, pairing, trust, discovery, resume)
 src/lib              client helpers (upload engine, invite, pairing, http)
 project-doc          full spec + design system (local only, never committed)
 ```
-
-## Rules
-
-All rectangles are Box. All text is AppText. No shadows, borders do the work.
-Tabler icons only. Tokens only, never raw hex.
-Docs (`*.md`, `project-doc`, local data dirs) stay local and are never committed.
-After touching a TS file, de-slop it, then typecheck.

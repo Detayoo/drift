@@ -39,6 +39,13 @@
   --tooltip-bg: #1a1a1a;
   --tooltip-fg: #fafafa;
 
+  /* glass — color-mix keeps real translucency. NOTE: Tailwind opacity
+     modifiers (/85 etc.) silently compile SOLID on var() tokens, so
+     translucent surfaces must come from these tokens, never bg-ink/80. */
+  --glass-ink: color-mix(in oklab, var(--ink) 84%, transparent);
+  --glass-paper: color-mix(in oklab, var(--paper) 85%, transparent);
+  --glass-paper-deep: color-mix(in oklab, var(--paper) 92%, transparent);
+
   /* status — meaningful, never decorative */
   --ok-bg: #edf9f0;
   --ok: #15803d;
@@ -113,6 +120,9 @@
   --color-on-accent: var(--on-accent);
   --color-tooltip-bg: var(--tooltip-bg);
   --color-tooltip-fg: var(--tooltip-fg);
+  --color-glass-ink: var(--glass-ink);
+  --color-glass-paper: var(--glass-paper);
+  --color-glass-paper-deep: var(--glass-paper-deep);
 
   --color-ok-bg: var(--ok-bg);
   --color-ok: var(--ok);
