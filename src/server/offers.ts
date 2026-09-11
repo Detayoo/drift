@@ -85,8 +85,10 @@ export function decideOffer(id: string, accept: boolean): Offer | undefined {
 export function consumeGrant(grant: string): Offer | undefined {
   sweep(Date.now());
   for (const offer of offers.values()) {
-    if (offer.grant === grant && offer.state === "accepted") {
-      offer.grant = null;
+    // A grant stays valid while its transfer is live, so a client retry
+    // after a broken stream doesn't need a second accept. Done offers
+    // never match, so each approval still completes at most once.
+    if (offer.grant === grant && (offer.state === "accepted" || offer.state === "sending" || offer.state === "failed")) {
       offer.state = "sending";
       console.log(`[offer ${offer.id}] upload started`);
       return offer;

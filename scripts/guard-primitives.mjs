@@ -4,15 +4,16 @@ import { join, relative } from "node:path";
 const ROOT = new URL("..", import.meta.url).pathname;
 const SRC = join(ROOT, "src");
 
-// Raw HTML tags. Only primitives may own them (plus html/body in app/layout).
+// Raw SEMANTIC tags. Only primitives may own them (plus html/body/head in
+// app/layout). Carve-outs, used sparingly: <span> as Radix asChild wrappers
+// and <svg> artwork inside primitives (TooltipNub) only.
 const RAW = new Set([
-  "div", "p", "span", "h1", "h2", "h3", "h4", "h5", "h6",
+  "div", "p", "h1", "h2", "h3", "h4", "h5", "h6",
   "a", "button", "input", "select", "textarea", "label", "form",
   "ul", "ol", "li", "dl", "dt", "dd",
   "table", "thead", "tbody", "tr", "td", "th",
   "section", "main", "header", "footer", "article", "aside", "nav",
   "img", "video", "audio", "canvas", "iframe",
-  "svg", "path", "circle", "rect", "line", "g",
   "hr", "br", "pre", "code", "blockquote", "strong", "em", "small",
   "details", "summary", "fieldset", "legend",
 ]);

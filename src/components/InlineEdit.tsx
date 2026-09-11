@@ -45,7 +45,7 @@ export function InlineEdit({
         <AppText variant="subheading" weight={600} truncate tone={value ? "default" : "muted"} className="min-w-0 flex-1">
           {value || emptyText}
         </AppText>
-        <Icon icon={IconPencil} size={14} className="shrink-0 text-ink-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100" />
+        <Icon icon={IconPencil} size={14} className="shrink-0 text-ink-faint opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 pointer-coarse:opacity-100" />
       </ActionButton>
     );
   }

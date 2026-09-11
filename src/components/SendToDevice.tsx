@@ -8,7 +8,9 @@ import { StatusBadge, StatusDot } from "@/components/Status";
 import { TextField } from "@/components/fields";
 import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
-import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
+import { formatBytes, uploadFile, validateFile } from "@/lib/upload";
+import { formatEta, formatSpeed } from "@/lib/transfer";
+import { useTransfer } from "@/hooks/useTransfer";
 import { fetchJson, isNetworkFailure } from "@/lib/http";
 import { normalizeDeviceUrl } from "@/lib/invite";
 
@@ -33,10 +35,10 @@ export function SendToDevice({
   const [manual, setManual] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [state, setState] = useState<SendState>("idle");
-  const [sent, setSent] = useState(0);
-  const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<number | null>(null);
+  const transfer = useTransfer();
+  const snap = transfer.snapshot;
 
   useEffect(() => {
     setAddress(window.localStorage.getItem(LAST_DEVICE_KEY) ?? "");
@@ -61,9 +63,8 @@ export function SendToDevice({
 
   const reset = () => {
     stopPoll();
+    transfer.reset();
     setFile(null);
-    setSent(0);
-    setResult(null);
     setError(null);
     setState("idle");
   };
@@ -116,15 +117,7 @@ export function SendToDevice({
         if (offer.state === "accepted" && offer.grant) {
           stopPoll();
           setState("sending");
-          setSent(0);
-          try {
-            const done = await uploadFile(file, setSent, { baseUrl: base, grant: offer.grant });
-            setResult(done);
-            setState("done");
-          } catch (err) {
-            setError(err instanceof Error ? err.message : "The transfer broke mid-stream.");
-            setState("error");
-          }
+          transfer.start(file, (f, p, s) => uploadFile(f, p, { baseUrl: base, grant: offer.grant, signal: s }));
         } else if (offer.state === "rejected") {
           stopPoll();
           setState("declined");
@@ -143,13 +136,23 @@ export function SendToDevice({
     }, 2000);
   };
 
-  const pct = file && file.size > 0 ? Math.min(100, Math.round((sent / file.size) * 100)) : 0;
+  const snapStatus = snap?.status;
+  useEffect(() => {
+    if (snapStatus === "done") setState("done");
+    else if (snapStatus === "error") setState("error");
+  }, [snapStatus]);
+
+  const pct = snap && snap.size > 0 ? Math.min(100, Math.round((snap.sent / snap.size) * 100)) : 0;
+  const pace =
+    !snap || snap.speedBps === null
+      ? "Starting…"
+      : `${formatSpeed(snap.speedBps)}${snap.etaSec ? ` · ${formatEta(snap.etaSec)}` : ""}`;
 
   return (
     <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg">
       <AppText variant="micro" tone="faint">send to another device</AppText>
 
-      {(state === "idle" || state === "error" || state === "declined") && (
+      {(state === "idle" || state === "declined") && (
         <Box gap="md">
           {prefill && !manual ? (
             <Box direction="row" align="center" gap="sm" tint="sunken" bordered border="soft" radius="md" className="px-3.5 py-2.5">
@@ -181,11 +184,6 @@ export function SendToDevice({
           {state === "declined" && (
             <AppText variant="small" tone="warn">They declined. No bytes were sent.</AppText>
           )}
-          {state === "error" && error && (
-            <Box tint="err-bg" pad="md" className="border-l-2 border-l-err" role="alert">
-              <AppText variant="small">{error}</AppText>
-            </Box>
-          )}
           <AppButton label="Send offer to device" iconLeft={IconSend} disabled={!file} onClick={() => { void send(); }}>
             Offer file
           </AppButton>
@@ -206,30 +204,48 @@ export function SendToDevice({
         </Box>
       )}
 
-      {state === "sending" && file && (
+      {(state === "sending" || snap?.status === "uploading" || snap?.status === "verifying") && snap && (
         <Box gap="sm" role="status" label="Sending progress">
-          <AppText variant="small" weight={600} truncate>Sending {file.name}</AppText>
+          <AppText variant="small" weight={600} truncate>Sending {snap.fileName}</AppText>
           <AppText variant="mono" tone="secondary" aria-live="polite">
-            {formatBytes(sent)} / {formatBytes(file.size)} · {pct}%
+            {formatBytes(snap.sent)} / {formatBytes(snap.size)} · {pct}% · {pace}
           </AppText>
           <Box radius="full" tint="sunken" className="h-1.5 w-full overflow-hidden">
             <Box radius="full" tint="accent" className="h-full transition-[width]" style={{ width: `${pct}%` }} />
           </Box>
+          <AppButton label="Cancel transfer" tone="ghost" size="sm" onClick={() => { transfer.cancel(); reset(); }}>
+            Cancel
+          </AppButton>
         </Box>
       )}
 
-      {state === "done" && result && (
+      {state === "done" && snap?.status === "done" && snap.result && (
         <Box gap="sm" role="status" label="Transfer complete">
           <Box direction="row" align="center" gap="sm">
-            <AppText variant="small" weight={600} truncate className="min-w-0 flex-1">{result.filename} arrived</AppText>
+            <AppText variant="small" weight={600} truncate className="min-w-0 flex-1">{snap.result.filename} arrived</AppText>
             <StatusBadge tone="ok">Sent</StatusBadge>
           </Box>
           <AppText variant="small" tone="secondary">
-            {formatBytes(result.bytes)} verified on their machine in {(result.ms / 1000).toFixed(1)}s.
+            {formatBytes(snap.result.bytes)} verified on their machine in {(snap.result.ms / 1000).toFixed(1)}s.
           </AppText>
           <AppButton label="Send another file" tone="secondary" onClick={reset}>
             Send another
           </AppButton>
+        </Box>
+      )}
+
+      {(state === "error" || snap?.status === "error") && (
+        <Box gap="sm" tint="err-bg" pad="lg" className="border-l-2 border-l-err" role="alert">
+          <AppText variant="subheading" weight={600}>That didn&apos;t go through</AppText>
+          <AppText variant="small" tone="secondary">{snap?.error ?? error ?? "Couldn't send it."}</AppText>
+          <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
+            <AppButton label="Try again" onClick={() => { if (snap) transfer.retry(); else void send(); }}>
+              Try again
+            </AppButton>
+            <AppButton label="Start over" tone="secondary" onClick={reset}>
+              Start over
+            </AppButton>
+          </Box>
         </Box>
       )}
     </Box>

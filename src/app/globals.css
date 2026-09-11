@@ -35,6 +35,10 @@
   --accent-strong: #095c5c;
   --on-accent: #ffffff;
 
+  /* tooltip — fixed near-black in both themes so it always reads */
+  --tooltip-bg: #1a1a1a;
+  --tooltip-fg: #fafafa;
+
   /* status — meaningful, never decorative */
   --ok-bg: #edf9f0;
   --ok: #15803d;
@@ -55,6 +59,9 @@
 
 .dark {
   color-scheme: dark;
+
+  --tooltip-bg: #1a1a1a;
+  --tooltip-fg: #fafafa;
 
   --ink: #f2f2f2;
   --ink-2: #a8a8a8;
@@ -104,6 +111,8 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-on-accent: var(--on-accent);
+  --color-tooltip-bg: var(--tooltip-bg);
+  --color-tooltip-fg: var(--tooltip-fg);
 
   --color-ok-bg: var(--ok-bg);
   --color-ok: var(--ok);
@@ -205,4 +214,61 @@ body {
   .dialog-panel[data-state="open"] {
     animation: ld-sheet-in 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   }
+}
+
+.tooltip-pill[data-state="delayed-open"] {
+  animation: ld-zoom-in 0.15s ease-out;
+}
+
+/* tooltip tail — one silhouette with the pill; orientation and edge
+   position follow Radix's live data-side / data-align attributes */
+.app-tooltip-nub {
+  position: absolute;
+}
+[data-side="top"] > .app-tooltip-nub {
+  bottom: -10px;
+}
+[data-side="bottom"] > .app-tooltip-nub {
+  top: -10px;
+  transform: rotate(180deg);
+}
+[data-side="left"] > .app-tooltip-nub {
+  right: -16px;
+  transform: rotate(-90deg);
+}
+[data-side="right"] > .app-tooltip-nub {
+  left: -16px;
+  transform: rotate(90deg);
+}
+[data-side="top"][data-align="center"] > .app-tooltip-nub {
+  left: 50%;
+  transform: translateX(-50%);
+}
+[data-side="bottom"][data-align="center"] > .app-tooltip-nub {
+  left: 50%;
+  transform: translateX(-50%) rotate(180deg);
+}
+[data-side="left"][data-align="center"] > .app-tooltip-nub {
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+}
+[data-side="right"][data-align="center"] > .app-tooltip-nub {
+  top: 50%;
+  transform: translateY(-50%) rotate(90deg);
+}
+[data-side="top"][data-align="start"] > .app-tooltip-nub,
+[data-side="bottom"][data-align="start"] > .app-tooltip-nub {
+  left: 12px;
+}
+[data-side="top"][data-align="end"] > .app-tooltip-nub,
+[data-side="bottom"][data-align="end"] > .app-tooltip-nub {
+  right: 12px;
+}
+[data-side="left"][data-align="start"] > .app-tooltip-nub,
+[data-side="right"][data-align="start"] > .app-tooltip-nub {
+  top: 12px;
+}
+[data-side="left"][data-align="end"] > .app-tooltip-nub,
+[data-side="right"][data-align="end"] > .app-tooltip-nub {
+  bottom: 12px;
 }

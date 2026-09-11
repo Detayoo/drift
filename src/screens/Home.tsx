@@ -21,7 +21,9 @@ import { AppText } from "@/components/primitives/AppText";
 import { Box } from "@/components/primitives/Box";
 import { Container, Divider, Main, Section } from "@/components/primitives/Chrome";
 import { Icon } from "@/components/primitives/Icon";
-import { formatBytes, uploadFile, validateFile, type UploadResult } from "@/lib/upload";
+import { formatBytes, uploadFile, validateFile } from "@/lib/upload";
+import { formatEta, formatSpeed } from "@/lib/transfer";
+import { useTransfer } from "@/hooks/useTransfer";
 import { fetchJson } from "@/lib/http";
 import { buildInviteLink, parseInvite } from "@/lib/invite";
 import { getDeviceId, getDeviceName, setDeviceName as persistDeviceName, shortId } from "@/lib/device";
@@ -29,7 +31,7 @@ import { useToast } from "@/components/Toast";
 import type { NetworkInfo } from "@/app/api/network/route";
 import type { ReceivedFile } from "@/app/api/transfers/route";
 
-type Status = "idle" | "ready" | "uploading" | "done" | "error";
+type Status = "idle" | "ready" | "error";
 type ListState = "loading" | "error" | "ready";
 
 function scrollTo(id: string) {
@@ -41,9 +43,9 @@ export function HomeScreen() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [file, setFile] = useState<File | null>(null);
-  const [sent, setSent] = useState(0);
-  const [result, setResult] = useState<UploadResult | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const transfer = useTransfer();
+  const snap = transfer.snapshot;
   const [received, setReceived] = useState<ReceivedFile[]>([]);
   const [listState, setListState] = useState<ListState>("loading");
   const commands = useSiteCommands(scrollTo);
@@ -122,42 +124,37 @@ export function HomeScreen() {
     const problem = validateFile(next);
     if (problem) {
       setFile(null);
-      setError(problem);
+      setFormError(problem);
       setStatus("error");
       return;
     }
     setFile(next);
-    setError(null);
-    setResult(null);
-    setSent(0);
+    setFormError(null);
     setStatus("ready");
   }, []);
 
-  const send = useCallback(async () => {
-    if (!file || status === "uploading") return;
-    setStatus("uploading");
-    setError(null);
-    setSent(0);
-    try {
-      const done = await uploadFile(file, setSent);
-      setResult(done);
-      setStatus("done");
-      void refreshReceived();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
-      setStatus("error");
-    }
-  }, [file, status, refreshReceived]);
+  const send = useCallback(() => {
+    if (!file) return;
+    transfer.start(file, (f, p, s) => uploadFile(f, p, { signal: s }));
+  }, [file, transfer]);
 
   const reset = useCallback(() => {
+    transfer.reset();
     setFile(null);
-    setSent(0);
-    setResult(null);
-    setError(null);
+    setFormError(null);
     setStatus("idle");
-  }, []);
+  }, [transfer]);
 
-  const pct = file && file.size > 0 ? Math.min(100, Math.round((sent / file.size) * 100)) : 0;
+  const snapStatus = snap?.status;
+  useEffect(() => {
+    if (snapStatus === "done") void refreshReceived();
+  }, [snapStatus, refreshReceived]);
+
+  const pct = snap && snap.size > 0 ? Math.min(100, Math.round((snap.sent / snap.size) * 100)) : 0;
+  const pace =
+    !snap || snap.speedBps === null
+      ? "Starting…"
+      : `${formatSpeed(snap.speedBps)}${snap.etaSec ? ` · ${formatEta(snap.etaSec)}` : ""}`;
   const inviteLink = net?.urls[0] ? buildInviteLink(net.urls[0], deviceName) : null;
 
   return (
@@ -207,31 +204,34 @@ export function HomeScreen() {
               </Box>
             )}
 
-            {status === "uploading" && file && (
+            {(snap?.status === "uploading" || snap?.status === "verifying") && snap && (
               <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg" role="status" label="Upload progress">
                 <Box direction="row" align="center" gap="sm">
                   <Icon icon={IconFile} size={22} className="text-ink-2" />
                   <Box className="min-w-0 flex-1">
-                    <AppText variant="small" weight={600} truncate>{file.name}</AppText>
+                    <AppText variant="small" weight={600} truncate>{snap.fileName}</AppText>
                     <AppText variant="mono" tone="secondary" aria-live="polite">
-                      {formatBytes(sent)} / {formatBytes(file.size)} · {pct}%
+                      {formatBytes(snap.sent)} / {formatBytes(snap.size)} · {pct}% · {pace}
                     </AppText>
                   </Box>
                 </Box>
                 <Box radius="full" tint="sunken" className="h-1.5 w-full overflow-hidden">
                   <Box radius="full" tint="accent" className="h-full transition-[width]" style={{ width: `${pct}%` }} />
                 </Box>
+                <AppButton label="Cancel upload" tone="ghost" size="sm" onClick={() => { transfer.cancel(); reset(); }}>
+                  Cancel
+                </AppButton>
               </Box>
             )}
 
-            {status === "done" && result && (
+            {snap?.status === "done" && snap.result && (
               <Box gap="md" bordered border="line" radius="lg" tint="raised" pad="lg" role="status" label="Upload complete">
                 <Box direction="row" align="center" gap="sm">
                   <Icon icon={IconFileCheck} size={22} className="text-ok" />
                   <Box className="min-w-0 flex-1">
-                    <AppText variant="small" weight={600} truncate>{result.filename}</AppText>
+                    <AppText variant="small" weight={600} truncate>{snap.result.filename}</AppText>
                     <AppText variant="small" tone="secondary">
-                      {formatBytes(result.bytes)} sent · {formatBytes(result.bytes)} kept · {(result.ms / 1000).toFixed(1)}s
+                      {formatBytes(snap.result.bytes)} sent · {formatBytes(snap.result.bytes)} kept · {(snap.result.ms / 1000).toFixed(1)}s
                     </AppText>
                   </Box>
                   <StatusBadge tone="ok">Verified</StatusBadge>
@@ -242,13 +242,13 @@ export function HomeScreen() {
               </Box>
             )}
 
-            {status === "error" && (
+            {(status === "error" || snap?.status === "error") && (
               <Box gap="md" tint="err-bg" pad="lg" className="border-l-2 border-l-err" role="alert">
                 <AppText variant="subheading" weight={600}>That didn&apos;t go through</AppText>
-                <AppText variant="small" tone="secondary">{error ?? "Upload failed."}</AppText>
+                <AppText variant="small" tone="secondary">{snap?.error ?? formError ?? "Upload failed."}</AppText>
                 <Box direction="row" gap="sm" className="max-md:flex-col max-md:items-stretch">
-                  {file && (
-                    <AppButton label="Retry upload" onClick={send}>
+                  {snap && (
+                    <AppButton label="Retry upload" onClick={() => transfer.retry()}>
                       Try again
                     </AppButton>
                   )}

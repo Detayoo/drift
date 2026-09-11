@@ -4,3 +4,4 @@ export { Container, Main, Section, AppHeader, AppFooter, Divider } from "./Chrom
 export { FieldInput, FieldArea, FieldSelect, FieldLabel } from "./Fields";
 export { ActionButton } from "./ActionButton";
 export { Icon, ICON_SIZES } from "./Icon";
+export { TooltipNub } from "./TooltipNub";

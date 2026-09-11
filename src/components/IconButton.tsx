@@ -1,16 +1,24 @@
+"use client";
+
 import { cn } from "@/lib/utils";
+import { AppTooltip, type TooltipSide } from "@/components/AppTooltip";
 import { ActionButton } from "@/components/primitives/ActionButton";
 import { Icon } from "@/components/primitives/Icon";
-import type { Ref } from "react";
+import { useHasHover } from "@/hooks/useHasHover";
+import type { ReactNode, Ref } from "react";
 import type { TablerIcon } from "@tabler/icons-react";
 
 /**
  * Canonical icon action. Rounded-md; rounded-full only for overflow "more".
- * The label is the aria-label and the hover title — never icon-only mystery.
+ * The label is the aria-label; on hover-capable devices it also shows as a
+ * tooltip. Touch devices get neither (nothing to hover) — the action stays
+ * fully usable, since meaning never lives in the tooltip alone.
  */
 export function IconButton({
   icon,
   label,
+  tip,
+  tipSide = "top",
   onClick,
   className,
   size = 18,
@@ -20,6 +28,8 @@ export function IconButton({
 }: {
   icon: TablerIcon;
   label: string;
+  tip?: ReactNode;
+  tipSide?: TooltipSide;
   onClick?: () => void;
   className?: string;
   size?: number;
@@ -27,7 +37,8 @@ export function IconButton({
   disabled?: boolean;
   ref?: Ref<HTMLButtonElement>;
 }) {
-  return (
+  const hasHover = useHasHover();
+  const button = (
     <ActionButton
       ref={ref}
       aria-label={label}
@@ -42,5 +53,11 @@ export function IconButton({
     >
       <Icon icon={icon} size={size} className="text-current" />
     </ActionButton>
+  );
+  if (!hasHover) return button;
+  return (
+    <AppTooltip content={tip ?? label} side={tipSide}>
+      {button}
+    </AppTooltip>
   );
 }
