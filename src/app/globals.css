@@ -235,27 +235,6 @@ html.theme-transition *::after {
   }
 }
 
-@keyframes ld-glass-swirl {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* slow light play for glass surfaces — fixed white so it reads on
-   bright pills in light mode and dark pills in dark mode */
-.glass-swirl {
-  background: conic-gradient(
-    from 0deg,
-    transparent 0deg,
-    rgba(255, 255, 255, 0.38) 45deg,
-    transparent 105deg,
-    transparent 195deg,
-    rgba(255, 255, 255, 0.22) 250deg,
-    transparent 305deg
-  );
-  animation: ld-glass-swirl 7s linear infinite;
-}
-
 .tooltip-pill[data-state="delayed-open"] {
   animation: ld-zoom-in 0.15s ease-out;
 }

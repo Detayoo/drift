@@ -218,7 +218,7 @@ export function HomeScreen() {
           <Box gap="md" className="pb-12 pt-16 max-md:pt-10">
             <Box direction="row" align="center" gap="sm">
               <StatusDot tone="accent" pulse />
-              <AppText variant="mono" tone="secondary">phase 1 · this device</AppText>
+              <AppText variant="mono" tone="secondary">local-first · device-to-device</AppText>
             </Box>
             <AppText variant="display" headingLevel={1} className="max-w-[16ch]">
               Send a file to this machine.

@@ -122,7 +122,7 @@ export function TabBar({
               className={cn(
                 "absolute inset-0 overflow-hidden border",
                   glassActive
-                    ? "border-white/60 bg-white/55 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 dark:border-white/25 dark:bg-white/15"
+                    ? "border-white/60 bg-white/55 backdrop-blur-xl backdrop-saturate-150 backdrop-brightness-110 dark:border-white/40 dark:bg-white/25"
                     : "border-line bg-raised",
                 showLabel
                   ? cn(
@@ -132,26 +132,22 @@ export function TabBar({
                   : "rounded-full",
               )}
             >
-              {glassActive && (
-                <>
-                  <span
-                    aria-hidden
-                    className="glass-swirl absolute -inset-[45%] rounded-full"
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 rounded-full bg-linear-to-br from-white/35 via-white/5 to-transparent dark:from-black/25 dark:via-black/5"
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-5 top-0 h-9 rounded-full bg-[radial-gradient(ellipse_at_top,rgba(255,255,255,0.45),transparent_70%)] dark:bg-[radial-gradient(ellipse_at_top,rgba(0,0,0,0.32),transparent_70%)]"
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-x-4 bottom-0 h-4 rounded-full bg-linear-to-t from-black/25 to-transparent dark:from-white/20"
-                  />
-                </>
-              )}
+                {glassActive && (
+                  <>
+                    <span
+                      aria-hidden
+                      className="absolute inset-0 rounded-full bg-linear-to-br from-white/30 via-white/5 to-transparent dark:from-white/20 dark:via-white/5"
+                    />
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-6 top-0 h-6 rounded-full bg-linear-to-b from-white/60 to-transparent dark:from-white/30"
+                    />
+                    <span
+                      aria-hidden
+                      className="absolute inset-x-6 bottom-0 h-4 rounded-full bg-linear-to-t from-black/20 to-transparent dark:from-white/15"
+                    />
+                  </>
+                )}
             </motion.span>
           </AnimatePresence>
         )}
