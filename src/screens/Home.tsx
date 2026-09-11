@@ -323,7 +323,7 @@ export function HomeScreen() {
 
           {/* ── Nearby ── */}
           <Section label="Nearby devices">
-            <Box id="nearby" gap="md" className="scroll-mt-24 py-12">
+            <Box id="nearby" gap="md" className="min-h-[40dvh] scroll-mt-24 py-12">
               <AppText variant="section" headingLevel={2}>Nearby</AppText>
               <AppText variant="body" tone="secondary" className="max-w-[56ch]">
                 Machines running Drift find each other on their own. Phones join by scan — they can&apos;t announce themselves.
